@@ -64,13 +64,6 @@ Start (500 gold)
 | damage | int | Damage to apply |
 | speed | float | Travel speed |
 
-**Castle:** Central structure to defend.
-
-| Field | Type | Notes |
-|-------|------|-------|
-| hp | int | Current health |
-| max_hp | int | 100 |
-
 **GameState:** Runtime game state (singleton).
 
 | Field | Type | Notes |
@@ -78,6 +71,7 @@ Start (500 gold)
 | gold | int | Player currency |
 | wave | int | Current wave (1-20) |
 | phase | GamePhase | `build`, `combat` |
+| castle_hp | int | Castle health (max 100) |
 | towers | Array[Tower] | Placed towers |
 | enemies | Array[Enemy] | Active enemies |
 
@@ -116,11 +110,11 @@ Start (500 gold)
 
 | Constant | Values | Used By |
 |----------|--------|---------|
-| GamePhase | `build`, `combat` | Wave, UI |
-| MaterialTier | `wood` (1), `scrap_wood` (2), `solid_metal` (3) | Tower, UI, Save |
-| WeaponType | `slingshot`, `bow`, `ballista`, `trebuchet` | Tower |
-| EnemyType | `zombie`, `skeleton`, `slime`, `tank_boss` | Enemy, Wave |
-| TileType | `grass`, `path`, `castle`, `blocked`, `occupied` | Grid |
+| GamePhase | `BUILD`, `COMBAT` | Wave, UI |
+| MaterialTier | `WOOD` (1), `SCRAP_WOOD` (2), `SOLID_METAL` (3) | Tower, UI, Save |
+| WeaponType | `SLINGSHOT`, `BOW`, `BALLISTA`, `TREBUCHET` | Tower |
+| EnemyType | `ZOMBIE`, `SKELETON`, `SLIME`, `TANK_BOSS` | Enemy, Wave |
+| TileType | `GRASS`, `PATH`, `CASTLE`, `BLOCKED`, `OCCUPIED` | Grid |
 
 ## Material → Weapon Mapping (Staggered)
 
@@ -217,23 +211,23 @@ Start (500 gold)
 **When:** Player taps upgrade
 **Then:** Material tier increases, weapon changes, gold deducted
 
-**Acceptance:** Upgrade Wood tower, verify material == `scrap_wood`
+**Acceptance:** Upgrade Wood tower, verify material == MaterialTier.SCRAP_WOOD
 
 ### IUC-5: Wave Completion
 
-**Modules:** Wave → Enemy → UI
-**Module UCs:** UC-WAV-1, UC-WAV-2, UC-WAV-3, UC-WAV-6, UC-WAV-7, UC-WAV-8, UC-ENM-1, UC-UI-6, UC-UI-9, UC-SAV-4
+**Modules:** Wave → Enemy → Grid → UI
+**Module UCs:** UC-WAV-1, UC-WAV-2, UC-WAV-3, UC-WAV-6, UC-WAV-7, UC-WAV-8, UC-ENM-1, UC-GRID-6, UC-UI-6, UC-UI-9, UC-SAV-4
 
 **Given:** All enemies in wave killed
 **When:** Last enemy dies
 **Then:** Wave counter increments, phase changes to build
 
-**Acceptance:** Clear wave 1, verify `GameState.wave == 2` and `phase == build`
+**Acceptance:** Clear wave 1, verify `GameState.wave == 2` and `GameState.phase == GamePhase.BUILD`
 
 ### IUC-6: Castle Damage
 
 **Modules:** Enemy → Wave → UI
-**Module UCs:** UC-ENM-5, UC-WAV-4
+**Module UCs:** UC-ENM-5, UC-WAV-4, UC-UI-15
 
 **Given:** Enemy reaches castle
 **When:** Enemy touches castle

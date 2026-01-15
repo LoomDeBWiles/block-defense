@@ -133,7 +133,7 @@ When Slime dies, spawn 2 smaller slimes at death position. Mini-slimes have:
 
 **Acceptance:** `e.take_damage(10); assert(e.hp == 20)`
 
-### UC-ENM-4: Die and reward gold
+### UC-ENM-4: Handle enemy death
 
 **Participates in:** IUC-3
 **Touches:** `enemy.gd`

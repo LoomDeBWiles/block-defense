@@ -17,7 +17,7 @@
 │         (tap tower = select)                     │
 │                                                  │
 ├──────────────────────────────────────────────────┤
-│ [T1][T2][T3]  [START]     🪙 500    WAVE 5/20   │
+│ [T1][T2][T3]  [START]  🪙 500  ❤️ 100  WAVE 5/20│
 └──────────────────────────────────────────────────┘
          ↑         ↑
     Drag to    Tap to start
@@ -59,6 +59,7 @@ Upgrade Popup (appears above tapped tower):
 | `show_weapon_choice` | `(tower: Tower) -> void` | Tier 3 weapon picker |
 | `update_gold` | `(amount: int) -> void` | Refresh gold display |
 | `update_wave` | `(wave: int) -> void` | Refresh wave display |
+| `update_castle_hp` | `(hp: int) -> void` | Refresh castle HP display |
 | `show_game_over` | `() -> void` | Display defeat screen |
 | `show_victory` | `(stats: GameStats) -> void` | Display win screen |
 
@@ -75,6 +76,7 @@ var selected_tower: Tower = null
 var tower_bar: TowerBar
 var gold_label: Label
 var wave_label: Label
+var castle_hp_label: Label
 var start_button: Button
 var upgrade_popup: UpgradePopup
 var weapon_choice_popup: WeaponChoicePopup
@@ -166,7 +168,7 @@ var gold_earned: int
 - Insufficient gold: button disabled (grayed)
 - Errors: none
 
-**Acceptance:** Tap Upgrade with 100 gold, tower becomes Scrap Wood
+**Acceptance:** Tap Upgrade with 100 gold, verify tower.material == MaterialTier.SCRAP_WOOD
 
 ### UC-UI-5: Update gold display
 
@@ -364,6 +366,25 @@ var gold_earned: int
 
 **Acceptance:** Drag tower, release over UI bar, no tower placed
 
+### UC-UI-15: Update castle HP display
+
+**Participates in:** IUC-6
+**Touches:** `ui_manager.gd`
+**Depends:** none
+**Priority:** P1
+
+**Given:** Castle HP changes
+**When:** `castle_damaged` signal received
+**Then:** Castle HP label/bar updated in UI
+
+**Contract:**
+- Input: `hp: int` via signal
+- Output: none
+- Side effects: Update castle HP label (e.g., "❤️ 100" → "❤️ 90")
+- Errors: none
+
+**Acceptance:** Let enemy reach castle, verify castle HP display decreases
+
 ## Signals (listened)
 
 | Signal | From | Handler |
@@ -371,5 +392,6 @@ var gold_earned: int
 | `gold_changed` | GameState | `update_gold()` |
 | `wave_started` | Wave | `update_wave()`, hide start button |
 | `wave_complete` | Wave | `update_wave()`, show start button |
+| `castle_damaged` | Wave | `update_castle_hp()` |
 | `game_over` | Wave | `show_game_over()` |
 | `victory` | Wave | `show_victory()` |

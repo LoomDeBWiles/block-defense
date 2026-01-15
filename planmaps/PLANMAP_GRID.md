@@ -179,7 +179,7 @@ var cell_size: float = 1.0  # World units per cell
 **Then:** Returns ordered array of waypoints from spawn to castle
 
 **Contract:**
-- Input: `spawn_id: int` (0 = west, 1 = east)
+- Input: `spawn_id: int` (0 = west, 1 = east, 2 = north)
 - Output: `Array[Vector3]` — world positions
 - Errors: none (empty array if invalid spawn_id)
 
