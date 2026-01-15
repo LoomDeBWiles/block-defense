@@ -43,7 +43,7 @@ func update_wave(wave: int) -> void:
 
 func update_castle_hp(hp: int) -> void:
 	if castle_hp_label:
-		castle_hp_label.text = str(hp)
+		castle_hp_label.text = "❤️ " + str(hp)
 
 
 func _on_gold_changed(amount: int) -> void:
