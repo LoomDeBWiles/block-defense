@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://tower_scene"]
+
+[ext_resource type="Script" path="res://scripts/tower.gd" id="1_tower"]
+
+[node name="Tower" type="Node3D"]
+script = ExtResource("1_tower")
+
+[node name="Base" type="MeshInstance3D" parent="."]
+mesh = BoxMesh.new()
+surface_material_override/0 = null
+
+[node name="Turret" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)

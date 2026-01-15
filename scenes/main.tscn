@@ -1,0 +1,99 @@
+[gd_scene load_steps=4 format=3 uid="uid://main_scene"]
+
+[ext_resource type="Script" path="res://scripts/grid.gd" id="1_grid"]
+[ext_resource type="Script" path="res://scripts/wave.gd" id="2_wave"]
+[ext_resource type="Script" path="res://scripts/ui/ui_manager.gd" id="3_ui"]
+
+[node name="Main" type="Node3D"]
+
+[node name="World" type="Node3D" parent="."]
+
+[node name="Grid" type="Node" parent="World"]
+script = ExtResource("1_grid")
+
+[node name="GridMap" type="GridMap" parent="World"]
+
+[node name="Castle" type="Node3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 0, 7.5)
+
+[node name="Towers" type="Node3D" parent="World"]
+
+[node name="Enemies" type="Node3D" parent="World"]
+
+[node name="Projectiles" type="Node3D" parent="World"]
+
+[node name="WaveManager" type="Node" parent="World"]
+script = ExtResource("2_wave")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.707107, -0.408248, 0.577350, 0, 0.816497, 0.577350, -0.707107, -0.408248, 0.577350, 15, 12, 15)
+projection = 1
+size = 15.0
+
+[node name="UI" type="CanvasLayer" parent="."]
+script = ExtResource("3_ui")
+
+[node name="HUD" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopBar" type="HBoxContainer" parent="UI/HUD"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 50.0
+grow_horizontal = 2
+
+[node name="GoldIcon" type="Label" parent="UI/HUD/TopBar"]
+layout_mode = 2
+text = "Gold:"
+
+[node name="GoldLabel" type="Label" parent="UI/HUD/TopBar"]
+layout_mode = 2
+text = "500"
+
+[node name="Spacer" type="Control" parent="UI/HUD/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CastleIcon" type="Label" parent="UI/HUD/TopBar"]
+layout_mode = 2
+text = "HP:"
+
+[node name="CastleHPLabel" type="Label" parent="UI/HUD/TopBar"]
+layout_mode = 2
+text = "100"
+
+[node name="Spacer2" type="Control" parent="UI/HUD/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="WaveLabel" type="Label" parent="UI/HUD/TopBar"]
+layout_mode = 2
+text = "WAVE 1/20"
+
+[node name="BottomBar" type="HBoxContainer" parent="UI/HUD"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -80.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="TowerBar" type="HBoxContainer" parent="UI/HUD/BottomBar"]
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="UI/HUD/BottomBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StartButton" type="Button" parent="UI/HUD/BottomBar"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+text = "START WAVE"

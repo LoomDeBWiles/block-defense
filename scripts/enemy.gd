@@ -7,6 +7,7 @@ signal reached_castle(damage: int)
 
 @export var enemy_type: Types.EnemyType = Types.EnemyType.ZOMBIE
 
+var is_mini: bool = false  # Mini-slimes don't split further
 var hp: int = 30
 var max_hp: int = 30
 var speed: float = 1.0
@@ -61,8 +62,8 @@ func take_damage(amount: int) -> void:
 func die() -> void:
 	GameState.add_gold(gold_value)
 
-	# Slime split mechanic
-	if enemy_type == Types.EnemyType.SLIME:
+	# Slime split mechanic (mini-slimes don't split further)
+	if enemy_type == Types.EnemyType.SLIME and not is_mini:
 		_spawn_mini_slimes()
 
 	enemy_died.emit(self)
@@ -76,6 +77,7 @@ func _spawn_mini_slimes() -> void:
 	for i in range(2):
 		var mini := Enemy.new()
 		mini.enemy_type = Types.EnemyType.SLIME
+		mini.is_mini = true
 		mini.hp = 15  # 30% of parent
 		mini.max_hp = 15
 		mini.speed = 1.2  # 150% of parent

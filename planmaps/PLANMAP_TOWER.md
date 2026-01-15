@@ -60,12 +60,12 @@ var aoe_radius: float  # 0 for single-target
 
 ## Weapon Stats
 
-| Weapon | Tier | Damage | Range | Fire Rate | AoE |
-|--------|------|--------|-------|-----------|-----|
-| Slingshot | 1 | 10 | 3.0 | 1.0/s | 0 |
-| Bow | 2 | 15 | 4.0 | 1.5/s | 0 |
-| Ballista | 3 | 40 | 5.0 | 0.5/s | 0 |
-| Trebuchet | 3 | 25 | 6.0 | 0.3/s | 2.0 |
+| Weapon | Tier | Damage | Range | Fire Rate (shots/s) | AoE |
+|--------|------|--------|-------|---------------------|-----|
+| Slingshot | 1 | 10 | 3.0 | 1.0 | 0 |
+| Bow | 2 | 15 | 4.0 | 1.5 | 0 |
+| Ballista | 3 | 40 | 5.0 | 0.5 | 0 |
+| Trebuchet | 3 | 25 | 6.0 | 0.3 | 2.0 |
 
 ## Tier → Weapon Mapping
 

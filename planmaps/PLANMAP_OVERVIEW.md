@@ -126,12 +126,21 @@ Start (500 gold)
 
 ## Weapon Stats
 
-| Weapon | Tier | Damage | Range | Fire Rate | Special |
-|--------|------|--------|-------|-----------|---------|
-| Slingshot | 1 | 10 | 3 | 1.0/s | — |
-| Bow | 2 | 15 | 4 | 1.5/s | — |
-| Ballista | 3 | 40 | 5 | 0.5/s | High single-target |
-| Trebuchet | 3 | 25 | 6 | 0.3/s | AoE (radius 2.0) |
+| Weapon | Tier | Damage | Range | Fire Rate (shots/s) | Special |
+|--------|------|--------|-------|---------------------|---------|
+| Slingshot | 1 | 10 | 3 | 1.0 | — |
+| Bow | 2 | 15 | 4 | 1.5 | — |
+| Ballista | 3 | 40 | 5 | 0.5 | High single-target |
+| Trebuchet | 3 | 25 | 6 | 0.3 | AoE (radius 2.0) |
+
+## Initial Values
+
+| Field | Value | Notes |
+|-------|-------|-------|
+| gold | 500 | Starting currency |
+| wave | 1 | First wave |
+| castle_hp | 100 | Max castle health |
+| phase | BUILD | Start in build phase |
 
 ## Tower Costs
 
