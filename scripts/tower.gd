@@ -34,6 +34,7 @@ const UPGRADE_COSTS := {
 
 const PLACEMENT_COST := 50
 const PROJECTILE_SCENE := preload("res://scenes/projectile.tscn")
+const TOWER_SCENE := preload("res://scenes/tower.tscn")
 
 
 func _ready() -> void:
@@ -142,3 +143,26 @@ static func get_weapon_choices(tier: Types.MaterialTier) -> Array[Types.WeaponTy
 	if tier == Types.MaterialTier.SOLID_METAL:
 		return [Types.WeaponType.BALLISTA, Types.WeaponType.TREBUCHET]
 	return []
+
+
+## Spawn a tower at the given grid position
+## Returns the tower instance, or null if placement invalid or cannot afford
+static func spawn_tower(grid_pos: Vector2i, grid: Grid, towers_container: Node, enemies_container: Node, projectiles_container: Node) -> Tower:
+	if not grid.can_place(grid_pos):
+		return null
+
+	if not GameState.spend_gold(PLACEMENT_COST):
+		return null
+
+	var tower: Tower = TOWER_SCENE.instantiate()
+	tower.grid_pos = grid_pos
+	tower.material_tier = Types.MaterialTier.WOOD
+	tower.weapon = Types.WeaponType.SLINGSHOT
+	tower._enemies_container = enemies_container
+	tower._projectiles_container = projectiles_container
+
+	tower.global_position = grid.grid_to_world(grid_pos)
+	towers_container.add_child(tower)
+	grid.mark_occupied(grid_pos)
+
+	return tower
