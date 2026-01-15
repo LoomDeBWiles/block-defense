@@ -6,12 +6,69 @@ signal upgrade_requested(tower: Tower)
 signal tier3_upgrade_requested(tower: Tower)
 signal popup_closed
 
+const TIER_NAMES := {
+	Types.MaterialTier.WOOD: "Wood",
+	Types.MaterialTier.SCRAP_WOOD: "Scrap Wood",
+	Types.MaterialTier.SOLID_METAL: "Solid Metal",
+}
+
+const NEXT_TIER := {
+	Types.MaterialTier.WOOD: Types.MaterialTier.SCRAP_WOOD,
+	Types.MaterialTier.SCRAP_WOOD: Types.MaterialTier.SOLID_METAL,
+}
+
 var _current_tower: Tower = null
+var _panel: PanelContainer
+var _info_label: Label
+var _upgrade_button: Button
+var _close_button: Button
+var _camera: Camera3D = null
+
+
+func _ready() -> void:
+	_create_ui()
+
+
+func _create_ui() -> void:
+	custom_minimum_size = Vector2(200, 100)
+
+	_panel = PanelContainer.new()
+	_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(_panel)
+
+	var vbox := VBoxContainer.new()
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 10)
+	_panel.add_child(vbox)
+
+	_info_label = Label.new()
+	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_info_label.add_theme_font_size_override("font_size", 18)
+	vbox.add_child(_info_label)
+
+	var buttons := HBoxContainer.new()
+	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+	buttons.add_theme_constant_override("separation", 10)
+	vbox.add_child(buttons)
+
+	_upgrade_button = Button.new()
+	_upgrade_button.custom_minimum_size = Vector2(80, 35)
+	_upgrade_button.pressed.connect(_on_upgrade_button_pressed)
+	buttons.add_child(_upgrade_button)
+
+	_close_button = Button.new()
+	_close_button.text = "X"
+	_close_button.custom_minimum_size = Vector2(35, 35)
+	_close_button.pressed.connect(_on_cancel_button_pressed)
+	buttons.add_child(_close_button)
 
 
 func show_for_tower(tower: Tower) -> void:
 	_current_tower = tower
+	if _camera == null:
+		_camera = get_viewport().get_camera_3d()
 	_refresh_display()
+	_position_above_tower()
 	visible = true
 
 
@@ -26,14 +83,34 @@ func _refresh_display() -> void:
 		return
 
 	var cost := _current_tower.get_upgrade_cost()
-	# TODO: Update UI labels with tier name and cost
+	var is_max_tier := cost < 0
+
+	if is_max_tier:
+		_info_label.text = "MAX LEVEL"
+		_upgrade_button.text = "---"
+		_upgrade_button.disabled = true
+	else:
+		var next_tier: Types.MaterialTier = NEXT_TIER.get(_current_tower.material_tier)
+		var next_name: String = TIER_NAMES.get(next_tier, "?")
+		_info_label.text = "%s - %d🪙" % [next_name, cost]
+		_upgrade_button.text = "Upgrade"
+		_upgrade_button.disabled = not _current_tower.can_upgrade()
+
+
+func _position_above_tower() -> void:
+	if _current_tower == null or _camera == null:
+		return
+
+	var tower_pos := _current_tower.global_position + Vector3(0, 1.5, 0)
+	var screen_pos := _camera.unproject_position(tower_pos)
+
+	position = screen_pos - custom_minimum_size / 2
 
 
 func _on_upgrade_button_pressed() -> void:
 	if _current_tower == null:
 		return
 
-	# Check if tier 3 upgrade (needs weapon choice)
 	if _current_tower.material_tier == Types.MaterialTier.SCRAP_WOOD:
 		tier3_upgrade_requested.emit(_current_tower)
 		hide_popup()
