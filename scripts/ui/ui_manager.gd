@@ -13,6 +13,9 @@ var selected_tower: Tower = null
 @onready var _wave_manager: WaveManager = $"../World/WaveManager"
 @onready var _grid: Grid = $"../World/Grid"
 @onready var _enemies_container: Node = $"../World/Enemies"
+@onready var _tower_bar: TowerBar = $HUD/BottomBar/TowerBar
+@onready var _towers_container: Node = $"../World/Towers"
+@onready var _camera: Camera3D = $"../Camera3D"
 @onready var _victory_screen: PanelContainer = $HUD/VictoryScreen
 @onready var _victory_waves_label: Label = $HUD/VictoryScreen/VBox/WavesLabel
 @onready var _victory_towers_label: Label = $HUD/VictoryScreen/VBox/TowersLabel
@@ -44,6 +47,60 @@ func _ready() -> void:
 	_create_game_over_screen()
 	_create_upgrade_popups()
 	_update_displays()
+
+
+func _input(event: InputEvent) -> void:
+	# Ignore input during tower drag
+	if _tower_bar and _tower_bar._is_dragging:
+		return
+
+	# Ignore if popups are open
+	if _upgrade_popup and _upgrade_popup.visible:
+		return
+	if _weapon_choice_popup and _weapon_choice_popup.visible:
+		return
+
+	# Handle tap/click release to select tower
+	var screen_pos: Vector2 = Vector2.ZERO
+	var is_release := false
+
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+			screen_pos = event.position
+			is_release = true
+	elif event is InputEventScreenTouch:
+		if not event.pressed:
+			screen_pos = event.position
+			is_release = true
+
+	if is_release:
+		_try_select_tower(screen_pos)
+
+
+func _try_select_tower(screen_pos: Vector2) -> void:
+	if _camera == null or _towers_container == null:
+		return
+
+	var from := _camera.project_ray_origin(screen_pos)
+	var to := from + _camera.project_ray_normal(screen_pos) * 1000.0
+
+	var space_state := _camera.get_world_3d().direct_space_state
+	var query := PhysicsRayQueryParameters3D.create(from, to)
+	var result := space_state.intersect_ray(query)
+
+	if result.is_empty():
+		return
+
+	# Check if we hit a tower's ClickArea
+	var collider := result.get("collider")
+	if collider == null:
+		return
+
+	# ClickArea is child of Tower, so get parent
+	var tower_node := collider.get_parent()
+	if tower_node is Tower:
+		selected_tower = tower_node
+		show_upgrade_popup(tower_node)
 
 
 func _update_displays() -> void:

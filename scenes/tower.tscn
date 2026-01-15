@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://tower_scene"]
+[gd_scene load_steps=3 format=3 uid="uid://tower_scene"]
 
 [ext_resource type="Script" path="res://scripts/tower.gd" id="1_tower"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
 
 [node name="Tower" type="Node3D"]
 script = ExtResource("1_tower")
@@ -11,3 +13,9 @@ surface_material_override/0 = null
 
 [node name="Turret" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+
+[node name="ClickArea" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ClickArea"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("BoxShape3D_1")
