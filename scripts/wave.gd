@@ -123,7 +123,8 @@ func _spawn_enemy(enemy_type: Types.EnemyType, waypoints: Array[Vector3]) -> voi
 
 
 func _on_enemy_died(_enemy: Enemy) -> void:
-	_check_wave_complete()
+	# Defer check since queue_free() is also deferred - enemy still in tree this frame
+	call_deferred("_check_wave_complete")
 
 
 func _on_mini_slime_spawned(mini: Enemy) -> void:
@@ -135,7 +136,8 @@ func _on_enemy_reached_castle(_damage: int) -> void:
 	if GameState.castle_hp <= 0:
 		game_over.emit()
 		return
-	_check_wave_complete()
+	# Defer check since queue_free() is also deferred - enemy still in tree this frame
+	call_deferred("_check_wave_complete")
 
 
 func _check_wave_complete() -> void:
