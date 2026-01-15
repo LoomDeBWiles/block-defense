@@ -189,6 +189,7 @@ func _on_mini_slime_spawned(mini: Enemy) -> void:
 func _on_enemy_reached_castle(damage: int) -> void:
 	GameState.damage_castle(damage)
 	if GameState.castle_hp <= 0:
+		Save.record_game_end(false, GameState.wave, GameState.gold, GameState.towers.size())
 		game_over.emit()
 		return
 	# Defer check since queue_free() is also deferred - enemy still in tree this frame
