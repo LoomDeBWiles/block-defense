@@ -33,6 +33,7 @@ const UPGRADE_COSTS := {
 }
 
 const PLACEMENT_COST := 50
+const PROJECTILE_SCENE := preload("res://scenes/projectile.tscn")
 
 
 func _ready() -> void:
@@ -91,13 +92,13 @@ func _fire() -> void:
 	if target == null or _projectiles_container == null:
 		return
 
-	var projectile := Projectile.new()
+	var projectile: Projectile = PROJECTILE_SCENE.instantiate()
 	projectile.target = target
 	projectile.damage = damage
 	projectile.aoe_radius = aoe_radius
 	projectile._enemies_container = _enemies_container
-	projectile.global_position = global_position
 	_projectiles_container.add_child(projectile)
+	projectile.global_position = global_position
 
 	fire_cooldown = 1.0 / fire_rate
 
