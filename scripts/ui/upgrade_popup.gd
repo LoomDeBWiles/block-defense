@@ -3,6 +3,7 @@ class_name UpgradePopup
 extends Control
 
 signal upgrade_requested(tower: Tower)
+signal tier3_upgrade_requested(tower: Tower)
 signal popup_closed
 
 var _current_tower: Tower = null
@@ -34,12 +35,11 @@ func _on_upgrade_button_pressed() -> void:
 
 	# Check if tier 3 upgrade (needs weapon choice)
 	if _current_tower.material_tier == Types.MaterialTier.SCRAP_WOOD:
-		# Show weapon choice popup instead
-		pass
+		tier3_upgrade_requested.emit(_current_tower)
+		hide_popup()
 	else:
 		upgrade_requested.emit(_current_tower)
-
-	hide_popup()
+		hide_popup()
 
 
 func _on_cancel_button_pressed() -> void:

@@ -11,6 +11,8 @@ var selected_tower: Tower = null
 @onready var castle_hp_label: Label = $HUD/CastleHPLabel
 @onready var start_button: Button = $HUD/StartButton
 @onready var _wave_manager: WaveManager = $"../World/WaveManager"
+@onready var _grid: Grid = $"../World/Grid"
+@onready var _enemies_container: Node = $"../World/Enemies"
 @onready var _victory_screen: PanelContainer = $HUD/VictoryScreen
 @onready var _victory_waves_label: Label = $HUD/VictoryScreen/VBox/WavesLabel
 @onready var _victory_towers_label: Label = $HUD/VictoryScreen/VBox/TowersLabel
@@ -19,6 +21,10 @@ var selected_tower: Tower = null
 # Game over screen components
 var _game_over_screen: PanelContainer
 var _retry_button: Button
+
+# Upgrade popup components
+var _upgrade_popup: UpgradePopup
+var _weapon_choice_popup: WeaponChoicePopup
 
 
 func _ready() -> void:
@@ -31,10 +37,12 @@ func _ready() -> void:
 		start_button.pressed.connect(_on_start_button_pressed)
 
 	if _wave_manager:
+		_wave_manager.setup(_grid, _enemies_container)
 		_wave_manager.game_over.connect(show_game_over)
 		_wave_manager.victory.connect(show_victory)
 
 	_create_game_over_screen()
+	_create_upgrade_popups()
 	_update_displays()
 
 
@@ -129,3 +137,36 @@ func _on_retry_pressed() -> void:
 	get_tree().paused = false
 	GameState.reset()
 	get_tree().reload_current_scene()
+
+
+func _create_upgrade_popups() -> void:
+	# Create upgrade popup
+	_upgrade_popup = UpgradePopup.new()
+	_upgrade_popup.visible = false
+	_upgrade_popup.upgrade_requested.connect(_on_upgrade_requested)
+	_upgrade_popup.tier3_upgrade_requested.connect(_on_tier3_upgrade_requested)
+	add_child(_upgrade_popup)
+
+	# Create weapon choice popup
+	_weapon_choice_popup = WeaponChoicePopup.new()
+	_weapon_choice_popup.visible = false
+	_weapon_choice_popup.weapon_chosen.connect(_on_weapon_chosen)
+	add_child(_weapon_choice_popup)
+
+
+func show_upgrade_popup(tower: Tower) -> void:
+	if _upgrade_popup:
+		_upgrade_popup.show_for_tower(tower)
+
+
+func _on_upgrade_requested(tower: Tower) -> void:
+	tower.upgrade()
+
+
+func _on_tier3_upgrade_requested(tower: Tower) -> void:
+	if _weapon_choice_popup:
+		_weapon_choice_popup.show_for_tower(tower)
+
+
+func _on_weapon_chosen(tower: Tower, weapon: Types.WeaponType) -> void:
+	tower.upgrade_with_weapon(weapon)
