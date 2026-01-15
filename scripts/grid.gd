@@ -12,6 +12,44 @@ var tiles: Array[Array] = []
 var _path_waypoints: Dictionary = {}
 
 
+func _ready() -> void:
+	_load_default_map()
+
+
+func _load_default_map() -> void:
+	# MVP 15x15 map: grass border, paths from 3 sides to castle at center
+	init_grid(15, 15)
+
+	# Fill with grass (placeable)
+	for x in range(width):
+		for y in range(height):
+			tiles[x][y] = Types.TileType.GRASS
+
+	# Castle at center (7,7) - 3x3 area
+	for x in range(6, 9):
+		for y in range(6, 9):
+			tiles[x][y] = Types.TileType.CASTLE
+
+	# West path: (0,7) -> (6,7)
+	for x in range(0, 7):
+		tiles[x][7] = Types.TileType.PATH
+
+	# East path: (14,7) -> (8,7)
+	for x in range(8, 15):
+		tiles[x][7] = Types.TileType.PATH
+
+	# North path: (7,0) -> (7,6)
+	for y in range(0, 7):
+		tiles[7][y] = Types.TileType.PATH
+
+	# Waypoints for each spawn point
+	_path_waypoints = {
+		0: [Vector3(0.5, 0, 7.5), Vector3(6.5, 0, 7.5), Vector3(7.5, 0, 7.5)],  # West -> Castle
+		1: [Vector3(14.5, 0, 7.5), Vector3(8.5, 0, 7.5), Vector3(7.5, 0, 7.5)],  # East -> Castle
+		2: [Vector3(7.5, 0, 0.5), Vector3(7.5, 0, 6.5), Vector3(7.5, 0, 7.5)],   # North -> Castle
+	}
+
+
 func init_grid(w: int, h: int) -> void:
 	width = w
 	height = h
