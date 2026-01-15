@@ -1,0 +1,143 @@
+## Tower entity - targets enemies, fires projectiles, upgradeable
+class_name Tower
+extends Node3D
+
+@export var grid_pos: Vector2i = Vector2i.ZERO
+@export var material_tier: Types.MaterialTier = Types.MaterialTier.WOOD
+@export var weapon: Types.WeaponType = Types.WeaponType.SLINGSHOT
+
+var target: Enemy = null
+var fire_cooldown: float = 0.0
+
+# Derived stats
+var damage: int = 10
+var range_radius: float = 3.0
+var fire_rate: float = 1.0
+var aoe_radius: float = 0.0
+
+var _enemies_container: Node = null
+var _projectiles_container: Node = null
+
+# Weapon stats: damage, range, fire_rate (shots/s), aoe_radius
+const WEAPON_STATS := {
+	Types.WeaponType.SLINGSHOT: { "damage": 10, "range": 3.0, "fire_rate": 1.0, "aoe": 0.0 },
+	Types.WeaponType.BOW: { "damage": 15, "range": 4.0, "fire_rate": 1.5, "aoe": 0.0 },
+	Types.WeaponType.BALLISTA: { "damage": 40, "range": 5.0, "fire_rate": 0.5, "aoe": 0.0 },
+	Types.WeaponType.TREBUCHET: { "damage": 25, "range": 6.0, "fire_rate": 0.3, "aoe": 2.0 },
+}
+
+# Upgrade costs
+const UPGRADE_COSTS := {
+	Types.MaterialTier.WOOD: 75,  # Wood -> Scrap Wood
+	Types.MaterialTier.SCRAP_WOOD: 150,  # Scrap Wood -> Solid Metal
+}
+
+const PLACEMENT_COST := 50
+
+
+func _ready() -> void:
+	_apply_weapon_stats()
+
+
+func _apply_weapon_stats() -> void:
+	var stats: Dictionary = WEAPON_STATS.get(weapon, WEAPON_STATS[Types.WeaponType.SLINGSHOT])
+	damage = stats.damage
+	range_radius = stats.range
+	fire_rate = stats.fire_rate
+	aoe_radius = stats.aoe
+
+
+func _physics_process(delta: float) -> void:
+	if GameState.phase != Types.GamePhase.COMBAT:
+		return
+
+	fire_cooldown = max(0.0, fire_cooldown - delta)
+
+	if target == null or not is_instance_valid(target):
+		_find_target()
+	elif global_position.distance_to(target.global_position) > range_radius:
+		target = null
+		_find_target()
+
+	if target != null and is_instance_valid(target):
+		_rotate_toward_target()
+		if fire_cooldown <= 0.0:
+			_fire()
+
+
+func _find_target() -> void:
+	target = null
+	if _enemies_container == null:
+		return
+
+	var nearest_dist := INF
+	for child in _enemies_container.get_children():
+		if child is Enemy:
+			var dist := global_position.distance_to(child.global_position)
+			if dist <= range_radius and dist < nearest_dist:
+				nearest_dist = dist
+				target = child
+
+
+func _rotate_toward_target() -> void:
+	if target == null:
+		return
+	var look_pos := target.global_position
+	look_pos.y = global_position.y  # Only rotate on Y axis
+	look_at(look_pos, Vector3.UP)
+
+
+func _fire() -> void:
+	if target == null or _projectiles_container == null:
+		return
+
+	var projectile := Projectile.new()
+	projectile.target = target
+	projectile.damage = damage
+	projectile.aoe_radius = aoe_radius
+	projectile._enemies_container = _enemies_container
+	projectile.global_position = global_position
+	_projectiles_container.add_child(projectile)
+
+	fire_cooldown = 1.0 / fire_rate
+
+
+## Upgrade tower to next tier
+## Returns true if upgrade succeeded
+func upgrade(chosen_weapon: Types.WeaponType = Types.WeaponType.SLINGSHOT) -> bool:
+	var cost := get_upgrade_cost()
+	if cost < 0:
+		return false  # Max tier
+
+	if not GameState.spend_gold(cost):
+		return false
+
+	match material_tier:
+		Types.MaterialTier.WOOD:
+			material_tier = Types.MaterialTier.SCRAP_WOOD
+			weapon = Types.WeaponType.BOW
+		Types.MaterialTier.SCRAP_WOOD:
+			material_tier = Types.MaterialTier.SOLID_METAL
+			# Tier 3 requires weapon choice
+			if chosen_weapon in [Types.WeaponType.BALLISTA, Types.WeaponType.TREBUCHET]:
+				weapon = chosen_weapon
+			else:
+				weapon = Types.WeaponType.BALLISTA
+
+	_apply_weapon_stats()
+	return true
+
+
+func get_upgrade_cost() -> int:
+	return UPGRADE_COSTS.get(material_tier, -1)
+
+
+func can_upgrade() -> bool:
+	var cost := get_upgrade_cost()
+	return cost > 0 and GameState.gold >= cost
+
+
+static func get_weapon_choices(tier: Types.MaterialTier) -> Array[Types.WeaponType]:
+	if tier == Types.MaterialTier.SOLID_METAL:
+		return [Types.WeaponType.BALLISTA, Types.WeaponType.TREBUCHET]
+	return []
