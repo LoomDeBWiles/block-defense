@@ -45,8 +45,7 @@ func load_save() -> void:
 
 
 func _apply_save_data(data: Dictionary) -> void:
-	var version: int = data.get("version", 1)
-	# Future: add migration logic here if version < CURRENT_VERSION
+	data = _migrate_save_data(data)
 
 	unlocked_tiers = Array(data.get("unlocked_tiers", [1]), TYPE_INT, "", null)
 	highest_wave = data.get("highest_wave", 0)
@@ -54,6 +53,34 @@ func _apply_save_data(data: Dictionary) -> void:
 	games_played = data.get("games_played", 0)
 	games_won = data.get("games_won", 0)
 	towers_built = data.get("towers_built", 0)
+
+
+func _migrate_save_data(data: Dictionary) -> Dictionary:
+	var version: int = data.get("version", 0)
+
+	# Apply migrations sequentially
+	if version < 1:
+		data = _migrate_v0_to_v1(data)
+
+	return data
+
+
+func _migrate_v0_to_v1(data: Dictionary) -> Dictionary:
+	# Version 0: Pre-versioned saves, add defaults for any missing fields
+	data["version"] = 1
+	if not data.has("unlocked_tiers"):
+		data["unlocked_tiers"] = [1]
+	if not data.has("highest_wave"):
+		data["highest_wave"] = 0
+	if not data.has("total_gold_earned"):
+		data["total_gold_earned"] = 0
+	if not data.has("games_played"):
+		data["games_played"] = 0
+	if not data.has("games_won"):
+		data["games_won"] = 0
+	if not data.has("towers_built"):
+		data["towers_built"] = 0
+	return data
 
 
 func save_progress() -> void:
