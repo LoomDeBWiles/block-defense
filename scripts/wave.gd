@@ -153,6 +153,7 @@ func _complete_wave() -> void:
 		Save.unlock_tier(unlock_tier)
 
 	if GameState.wave >= 20:
+		Save.record_game_end(true, GameState.wave, GameState.gold, GameState.towers.size())
 		victory.emit()
 		return
 
