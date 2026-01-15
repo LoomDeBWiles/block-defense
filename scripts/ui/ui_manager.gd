@@ -11,6 +11,14 @@ var selected_tower: Tower = null
 @onready var castle_hp_label: Label = $HUD/CastleHPLabel
 @onready var start_button: Button = $HUD/StartButton
 @onready var _wave_manager: WaveManager = $"../World/WaveManager"
+@onready var _victory_screen: PanelContainer = $HUD/VictoryScreen
+@onready var _victory_waves_label: Label = $HUD/VictoryScreen/VBox/WavesLabel
+@onready var _victory_towers_label: Label = $HUD/VictoryScreen/VBox/TowersLabel
+@onready var _victory_gold_label: Label = $HUD/VictoryScreen/VBox/GoldLabel
+
+# Game over screen components
+var _game_over_screen: PanelContainer
+var _retry_button: Button
 
 
 func _ready() -> void:
@@ -22,6 +30,11 @@ func _ready() -> void:
 	if start_button:
 		start_button.pressed.connect(_on_start_button_pressed)
 
+	if _wave_manager:
+		_wave_manager.game_over.connect(show_game_over)
+		_wave_manager.victory.connect(show_victory)
+
+	_create_game_over_screen()
 	_update_displays()
 
 
@@ -73,10 +86,46 @@ func _on_start_button_pressed() -> void:
 
 
 func show_game_over() -> void:
-	# TODO: Show game over screen
-	pass
+	get_tree().paused = true
+	_game_over_screen.visible = true
 
 
 func show_victory() -> void:
-	# TODO: Show victory screen with stats
-	pass
+	get_tree().paused = true
+	_victory_waves_label.text = "Waves: %d" % GameState.wave
+	_victory_towers_label.text = "Towers Built: %d" % GameState.towers.size()
+	_victory_gold_label.text = "Gold Earned: %d" % GameState.gold
+	_victory_screen.visible = true
+
+
+func _create_game_over_screen() -> void:
+	_game_over_screen = PanelContainer.new()
+	_game_over_screen.name = "GameOverScreen"
+	_game_over_screen.visible = false
+	_game_over_screen.set_anchors_preset(Control.PRESET_CENTER)
+	_game_over_screen.custom_minimum_size = Vector2(300, 200)
+
+	var vbox := VBoxContainer.new()
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 20)
+	_game_over_screen.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "GAME OVER"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 32)
+	vbox.add_child(title)
+
+	_retry_button = Button.new()
+	_retry_button.text = "RETRY"
+	_retry_button.custom_minimum_size = Vector2(100, 40)
+	_retry_button.pressed.connect(_on_retry_pressed)
+	vbox.add_child(_retry_button)
+
+	add_child(_game_over_screen)
+
+
+func _on_retry_pressed() -> void:
+	get_tree().paused = false
+	GameState.reset()
+	get_tree().reload_current_scene()
