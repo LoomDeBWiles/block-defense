@@ -34,6 +34,9 @@ func _ready() -> void:
 
 
 func _apply_stats() -> void:
+	# Mini-slimes have stats pre-set in _spawn_mini_slimes() - don't overwrite
+	if is_mini:
+		return
 	var stats: Dictionary = ENEMY_STATS.get(enemy_type, ENEMY_STATS[Types.EnemyType.ZOMBIE])
 	hp = stats.hp
 	max_hp = stats.hp
