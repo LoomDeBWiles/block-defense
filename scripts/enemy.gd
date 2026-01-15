@@ -4,6 +4,7 @@ extends Node3D
 
 signal enemy_died(enemy: Enemy)
 signal reached_castle(damage: int)
+signal mini_slime_spawned(mini: Enemy)
 
 @export var enemy_type: Types.EnemyType = Types.EnemyType.ZOMBIE
 
@@ -87,6 +88,7 @@ func _spawn_mini_slimes() -> void:
 		mini.path_index = 0
 		mini.global_position = global_position + Vector3(randf_range(-0.3, 0.3), 0, randf_range(-0.3, 0.3))
 		get_parent().add_child(mini)
+		mini_slime_spawned.emit(mini)
 
 
 func _reached_castle() -> void:
