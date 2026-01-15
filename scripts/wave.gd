@@ -226,7 +226,9 @@ func _get_spawn_interval() -> float:
 
 
 func get_active_spawns(wave: int) -> Array[int]:
-	for max_wave in SPAWN_PROGRESSION.keys():
+	var thresholds := SPAWN_PROGRESSION.keys()
+	thresholds.sort()
+	for max_wave: int in thresholds:
 		if wave <= max_wave:
 			return Array(SPAWN_PROGRESSION[max_wave], TYPE_INT, "", null)
 	return [0, 1, 2]
