@@ -104,28 +104,43 @@ func _fire() -> void:
 	fire_cooldown = 1.0 / fire_rate
 
 
-## Upgrade tower to next tier
+## Upgrade tower from tier 1 to tier 2 (WOOD -> SCRAP_WOOD)
 ## Returns true if upgrade succeeded
-func upgrade(chosen_weapon: Types.WeaponType = Types.WeaponType.SLINGSHOT) -> bool:
-	var cost := get_upgrade_cost()
+func upgrade() -> bool:
+	if material_tier != Types.MaterialTier.WOOD:
+		return false  # Only works for tier 1
+
+	var cost := UPGRADE_COSTS.get(material_tier, -1)
 	if cost < 0:
-		return false  # Max tier
+		return false
 
 	if not GameState.spend_gold(cost):
 		return false
 
-	match material_tier:
-		Types.MaterialTier.WOOD:
-			material_tier = Types.MaterialTier.SCRAP_WOOD
-			weapon = Types.WeaponType.BOW
-		Types.MaterialTier.SCRAP_WOOD:
-			material_tier = Types.MaterialTier.SOLID_METAL
-			# Tier 3 requires weapon choice
-			if chosen_weapon in [Types.WeaponType.BALLISTA, Types.WeaponType.TREBUCHET]:
-				weapon = chosen_weapon
-			else:
-				weapon = Types.WeaponType.BALLISTA
+	material_tier = Types.MaterialTier.SCRAP_WOOD
+	weapon = Types.WeaponType.BOW
+	_apply_weapon_stats()
+	return true
 
+
+## Upgrade tower from tier 2 to tier 3 (SCRAP_WOOD -> SOLID_METAL) with weapon choice
+## Returns true if upgrade succeeded
+func upgrade_with_weapon(chosen_weapon: Types.WeaponType) -> bool:
+	if material_tier != Types.MaterialTier.SCRAP_WOOD:
+		return false  # Only works for tier 2
+
+	if chosen_weapon not in [Types.WeaponType.BALLISTA, Types.WeaponType.TREBUCHET]:
+		return false  # Invalid weapon for tier 3
+
+	var cost := UPGRADE_COSTS.get(material_tier, -1)
+	if cost < 0:
+		return false
+
+	if not GameState.spend_gold(cost):
+		return false
+
+	material_tier = Types.MaterialTier.SOLID_METAL
+	weapon = chosen_weapon
 	_apply_weapon_stats()
 	return true
 
