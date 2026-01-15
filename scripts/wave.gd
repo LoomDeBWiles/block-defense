@@ -60,6 +60,60 @@ const UNLOCK_TRIGGERS := {
 }
 
 
+class SpawnEntry:
+	var enemy_type: Types.EnemyType
+	var count: int
+
+	func _init(type: Types.EnemyType, cnt: int) -> void:
+		enemy_type = type
+		count = cnt
+
+
+class SpawnGroup:
+	var spawn_point: int
+	var enemies: Array[SpawnEntry]
+
+	func _init(point: int) -> void:
+		spawn_point = point
+		enemies = []
+
+
+class WaveData:
+	var spawns: Array[SpawnGroup]
+	var spawn_interval: float
+
+	func _init() -> void:
+		spawns = []
+		spawn_interval = 0.0
+
+
+func get_wave_data(wave: int) -> WaveData:
+	var data := WaveData.new()
+	if wave < 1 or wave > 20:
+		return data
+
+	data.spawn_interval = _get_spawn_interval_for_wave(wave)
+	var wave_def: Dictionary = WAVE_DATA.get(wave, {})
+
+	for spawn_id: int in wave_def.keys():
+		var group := SpawnGroup.new(spawn_id)
+		var entries: Array = wave_def[spawn_id]
+		for entry: Dictionary in entries:
+			var enemy_type: Types.EnemyType = entry.get("type", Types.EnemyType.ZOMBIE)
+			var count: int = entry.get("count", 0)
+			group.enemies.append(SpawnEntry.new(enemy_type, count))
+		data.spawns.append(group)
+
+	return data
+
+
+func _get_spawn_interval_for_wave(wave: int) -> float:
+	for max_wave in SPAWN_INTERVALS.keys():
+		if wave <= max_wave:
+			return SPAWN_INTERVALS[max_wave]
+	return 0.8
+
+
 func setup(grid: Grid, enemies_container: Node) -> void:
 	_grid = grid
 	_enemies_container = enemies_container
