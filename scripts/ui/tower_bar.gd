@@ -149,9 +149,11 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton:
 		if not event.pressed:
 			_finish_drag(event.position)
+			get_viewport().set_input_as_handled()
 	elif event is InputEventScreenTouch:
 		if not event.pressed:
 			_finish_drag(event.position)
+			get_viewport().set_input_as_handled()
 
 
 func start_drag(tier: Types.MaterialTier) -> void:
