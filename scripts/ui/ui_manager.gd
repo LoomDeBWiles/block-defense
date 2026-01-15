@@ -10,6 +10,7 @@ var selected_tower: Tower = null
 @onready var wave_label: Label = $HUD/WaveLabel
 @onready var castle_hp_label: Label = $HUD/CastleHPLabel
 @onready var start_button: Button = $HUD/StartButton
+@onready var _wave_manager: WaveManager = $"../World/WaveManager"
 
 
 func _ready() -> void:
@@ -17,6 +18,9 @@ func _ready() -> void:
 	GameState.wave_changed.connect(_on_wave_changed)
 	GameState.castle_damaged.connect(_on_castle_damaged)
 	GameState.phase_changed.connect(_on_phase_changed)
+
+	if start_button:
+		start_button.pressed.connect(_on_start_button_pressed)
 
 	_update_displays()
 
@@ -56,7 +60,16 @@ func _on_castle_damaged(hp: int) -> void:
 
 func _on_phase_changed(phase: Types.GamePhase) -> void:
 	if start_button:
-		start_button.visible = (phase == Types.GamePhase.BUILD)
+		if phase == Types.GamePhase.BUILD:
+			start_button.visible = true
+			start_button.text = "START WAVE"
+		else:
+			start_button.visible = false
+
+
+func _on_start_button_pressed() -> void:
+	if _wave_manager:
+		_wave_manager.start_wave()
 
 
 func show_game_over() -> void:
