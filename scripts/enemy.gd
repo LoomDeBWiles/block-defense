@@ -31,6 +31,11 @@ func _ready() -> void:
 	_apply_stats()
 	if waypoints.size() > 0:
 		global_position = waypoints[0]
+	GameState.register_enemy(self)
+
+
+func _exit_tree() -> void:
+	GameState.unregister_enemy(self)
 
 
 func _apply_stats() -> void:
@@ -110,10 +115,9 @@ static func spawn_enemy(enemy_type: Types.EnemyType, waypoints: Array[Vector3], 
 
 
 ## Static helper to get enemies in radius (for AoE)
-static func get_enemies_in_radius(enemies_container: Node, pos: Vector3, radius: float) -> Array[Enemy]:
+static func get_enemies_in_radius(pos: Vector3, radius: float) -> Array[Enemy]:
 	var result: Array[Enemy] = []
-	for child in enemies_container.get_children():
-		if child is Enemy:
-			if child.global_position.distance_to(pos) <= radius:
-				result.append(child)
+	for enemy in GameState.enemies:
+		if is_instance_valid(enemy) and enemy.global_position.distance_to(pos) <= radius:
+			result.append(enemy)
 	return result

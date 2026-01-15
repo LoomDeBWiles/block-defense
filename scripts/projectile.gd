@@ -7,8 +7,6 @@ var damage: int = 10
 var speed: float = 10.0
 var aoe_radius: float = 0.0  # 0 = single target
 
-var _enemies_container: Node = null
-
 
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(target):
@@ -23,9 +21,9 @@ func _physics_process(delta: float) -> void:
 
 
 func _hit() -> void:
-	if aoe_radius > 0.0 and _enemies_container != null:
+	if aoe_radius > 0.0:
 		# AoE damage
-		var targets := Enemy.get_enemies_in_radius(_enemies_container, global_position, aoe_radius)
+		var targets := Enemy.get_enemies_in_radius(global_position, aoe_radius)
 		for enemy in targets:
 			enemy.take_damage(damage)
 	elif is_instance_valid(target):

@@ -13,7 +13,15 @@ var phase: Types.GamePhase = Types.GamePhase.BUILD
 var castle_hp: int = 100
 
 var towers: Array[Node] = []
-var enemies: Array[Node] = []
+var enemies: Array[Enemy] = []
+
+
+func register_enemy(enemy: Enemy) -> void:
+	enemies.append(enemy)
+
+
+func unregister_enemy(enemy: Enemy) -> void:
+	enemies.erase(enemy)
 
 
 func reset() -> void:

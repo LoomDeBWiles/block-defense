@@ -97,7 +97,6 @@ func _fire() -> void:
 	projectile.target = target
 	projectile.damage = damage
 	projectile.aoe_radius = aoe_radius
-	projectile._enemies_container = _enemies_container
 	_projectiles_container.add_child(projectile)
 	projectile.global_position = global_position
 
