@@ -152,6 +152,25 @@ func _remove_ghost() -> void:
 
 
 func end_drag(grid_pos: Vector2i) -> void:
+	var world := get_tree().root.get_node_or_null("Main/World")
+	if world == null:
+		tower_drag_cancelled.emit()
+		return
+
+	var grid: Grid = world.get_node_or_null("Grid")
+	var towers := world.get_node_or_null("Towers")
+	var enemies := world.get_node_or_null("Enemies")
+	var projectiles := world.get_node_or_null("Projectiles")
+
+	if grid == null or towers == null or enemies == null or projectiles == null:
+		tower_drag_cancelled.emit()
+		return
+
+	var tower := Tower.spawn_tower(grid_pos, grid, towers, enemies, projectiles)
+	if tower == null:
+		tower_drag_cancelled.emit()
+		return
+
 	tower_drag_ended.emit(grid_pos)
 
 
