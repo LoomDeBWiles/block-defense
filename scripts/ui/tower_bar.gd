@@ -12,7 +12,21 @@ const TIER_NAMES := {
 	Types.MaterialTier.SOLID_METAL: "Metal",
 }
 
+const TIER_WEAPONS := {
+	Types.MaterialTier.WOOD: Types.WeaponType.SLINGSHOT,
+	Types.MaterialTier.SCRAP_WOOD: Types.WeaponType.BOW,
+	Types.MaterialTier.SOLID_METAL: Types.WeaponType.BALLISTA,  # Default for Metal slot
+}
+
+const WEAPON_NAMES := {
+	Types.WeaponType.SLINGSHOT: "Slingshot",
+	Types.WeaponType.BOW: "Bow",
+	Types.WeaponType.BALLISTA: "Ballista",
+	Types.WeaponType.TREBUCHET: "Trebuchet",
+}
+
 const SLOT_SIZE := Vector2(64, 64)
+const LONG_PRESS_DURATION := 0.5
 
 var _slots: Dictionary = {}  # MaterialTier -> Button
 var _dragging_tier: Types.MaterialTier = Types.MaterialTier.WOOD
@@ -20,10 +34,18 @@ var _is_dragging: bool = false
 var _ghost: Node3D = null
 var _camera: Camera3D = null
 
+# Long-press tooltip state
+var _press_timer: Timer = null
+var _pressed_tier: Types.MaterialTier = Types.MaterialTier.WOOD
+var _is_long_pressing: bool = false
+var _tooltip: Label = null
+
 
 func _ready() -> void:
 	_camera = get_viewport().get_camera_3d()
 	_create_slots()
+	_create_tooltip()
+	_create_press_timer()
 	_refresh_slots()
 	Save.tier_unlocked.connect(_on_tier_unlocked)
 	GameState.gold_changed.connect(_on_gold_changed)
@@ -37,8 +59,26 @@ func _create_slots() -> void:
 		slot.text = TIER_NAMES.get(tier, "?")
 		slot.set_meta("tier", tier)
 		slot.button_down.connect(_on_slot_pressed.bind(tier))
+		slot.button_up.connect(_on_slot_released.bind(tier))
 		add_child(slot)
 		_slots[tier] = slot
+
+
+func _create_tooltip() -> void:
+	_tooltip = Label.new()
+	_tooltip.visible = false
+	_tooltip.add_theme_color_override("font_color", Color.WHITE)
+	_tooltip.add_theme_color_override("font_outline_color", Color.BLACK)
+	_tooltip.add_theme_constant_override("outline_size", 2)
+	add_child(_tooltip)
+
+
+func _create_press_timer() -> void:
+	_press_timer = Timer.new()
+	_press_timer.one_shot = true
+	_press_timer.wait_time = LONG_PRESS_DURATION
+	_press_timer.timeout.connect(_on_long_press_triggered)
+	add_child(_press_timer)
 
 
 func _refresh_slots() -> void:
@@ -59,7 +99,45 @@ func _on_gold_changed(_amount: int) -> void:
 
 
 func _on_slot_pressed(tier: Types.MaterialTier) -> void:
-	start_drag(tier)
+	_pressed_tier = tier
+	_press_timer.start()
+
+
+func _on_slot_released(_tier: Types.MaterialTier) -> void:
+	var was_long_press := _is_long_pressing
+	_press_timer.stop()
+	_hide_tooltip()
+
+	if was_long_press:
+		return  # Long-press = tooltip only, no drag
+
+	start_drag(_pressed_tier)
+
+
+func _on_long_press_triggered() -> void:
+	_is_long_pressing = true
+	_show_tooltip(_pressed_tier)
+
+
+func _show_tooltip(tier: Types.MaterialTier) -> void:
+	var weapon: Types.WeaponType = TIER_WEAPONS.get(tier, Types.WeaponType.SLINGSHOT)
+	var stats: Dictionary = Tower.WEAPON_STATS.get(weapon, {})
+	var weapon_name: String = WEAPON_NAMES.get(weapon, "?")
+	var dmg: int = stats.get("damage", 0)
+	var rng: float = stats.get("range", 0.0)
+
+	_tooltip.text = "%s: %d dmg, %d range" % [weapon_name, dmg, int(rng)]
+	_tooltip.visible = true
+
+	# Position above the pressed slot
+	var slot: Button = _slots.get(tier)
+	if slot:
+		_tooltip.position = slot.position + Vector2(0, -30)
+
+
+func _hide_tooltip() -> void:
+	_tooltip.visible = false
+	_is_long_pressing = false
 
 
 func _input(event: InputEvent) -> void:
