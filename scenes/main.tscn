@@ -97,3 +97,46 @@ size_flags_horizontal = 3
 custom_minimum_size = Vector2(120, 60)
 layout_mode = 2
 text = "START WAVE"
+
+[node name="VictoryScreen" type="PanelContainer" parent="UI/HUD"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -100.0
+offset_right = 150.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="UI/HUD/VictoryScreen"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="UI/HUD/VictoryScreen/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "VICTORY"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="UI/HUD/VictoryScreen/VBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="WavesLabel" type="Label" parent="UI/HUD/VictoryScreen/VBox"]
+layout_mode = 2
+text = "Waves: 20"
+horizontal_alignment = 1
+
+[node name="TowersLabel" type="Label" parent="UI/HUD/VictoryScreen/VBox"]
+layout_mode = 2
+text = "Towers Built: 0"
+horizontal_alignment = 1
+
+[node name="GoldLabel" type="Label" parent="UI/HUD/VictoryScreen/VBox"]
+layout_mode = 2
+text = "Gold Earned: 0"
+horizontal_alignment = 1
