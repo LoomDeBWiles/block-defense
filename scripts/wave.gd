@@ -186,7 +186,8 @@ func _on_mini_slime_spawned(mini: Enemy) -> void:
 	mini.reached_castle.connect(_on_enemy_reached_castle)
 
 
-func _on_enemy_reached_castle(_damage: int) -> void:
+func _on_enemy_reached_castle(damage: int) -> void:
+	GameState.damage_castle(damage)
 	if GameState.castle_hp <= 0:
 		game_over.emit()
 		return
