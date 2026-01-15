@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://main_scene"]
+[gd_scene load_steps=5 format=3 uid="uid://main_scene"]
 
 [ext_resource type="Script" path="res://scripts/grid.gd" id="1_grid"]
 [ext_resource type="Script" path="res://scripts/wave.gd" id="2_wave"]
 [ext_resource type="Script" path="res://scripts/ui/ui_manager.gd" id="3_ui"]
+[ext_resource type="Script" path="res://scripts/ui/tower_bar.gd" id="4_tower_bar"]
 
 [node name="Main" type="Node3D"]
 
@@ -88,6 +89,7 @@ grow_vertical = 0
 
 [node name="TowerBar" type="HBoxContainer" parent="UI/HUD/BottomBar"]
 layout_mode = 2
+script = ExtResource("4_tower_bar")
 
 [node name="Spacer" type="Control" parent="UI/HUD/BottomBar"]
 layout_mode = 2
