@@ -97,6 +97,15 @@ func _reached_castle() -> void:
 	queue_free()
 
 
+## Spawns a new enemy and adds it to the Enemies container
+static func spawn_enemy(enemy_type: Types.EnemyType, waypoints: Array[Vector3], enemies_container: Node) -> Enemy:
+	var enemy := Enemy.new()
+	enemy.enemy_type = enemy_type
+	enemy.waypoints = waypoints.duplicate()
+	enemies_container.add_child(enemy)
+	return enemy
+
+
 ## Static helper to get enemies in radius (for AoE)
 static func get_enemies_in_radius(enemies_container: Node, pos: Vector3, radius: float) -> Array[Enemy]:
 	var result: Array[Enemy] = []

@@ -116,13 +116,10 @@ func _spawn_enemy(enemy_type: Types.EnemyType, waypoints: Array[Vector3]) -> voi
 	if _enemies_container == null:
 		return
 
-	var enemy := Enemy.new()
-	enemy.enemy_type = enemy_type
-	enemy.waypoints = waypoints.duplicate()
+	var enemy := Enemy.spawn_enemy(enemy_type, waypoints, _enemies_container)
 	enemy.enemy_died.connect(_on_enemy_died)
 	enemy.reached_castle.connect(_on_enemy_reached_castle)
 	enemy.mini_slime_spawned.connect(_on_mini_slime_spawned)
-	_enemies_container.add_child(enemy)
 
 
 func _on_enemy_died(_enemy: Enemy) -> void:
