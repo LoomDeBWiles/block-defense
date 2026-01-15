@@ -109,9 +109,9 @@ enum MaterialTier { WOOD = 1, SCRAP_WOOD = 2, SOLID_METAL = 3 }
 
 ---
 
-### 7. [PLANMAP_UI.md:169] UC-UI-4 acceptance uses lowercase enum
+### 7. [PLANMAP_UI.md:169] UC-UI-4 acceptance not executable
 
-**Problem:** Acceptance uses `material == `scrap_wood`` instead of proper enum reference.
+**Problem:** Acceptance uses descriptive text "tower becomes Scrap Wood" instead of verifiable code.
 
 **Fix:**
 ```diff
@@ -119,7 +119,7 @@ enum MaterialTier { WOOD = 1, SCRAP_WOOD = 2, SOLID_METAL = 3 }
 + **Acceptance:** Tap Upgrade with 100 gold, verify tower.material == MaterialTier.SCRAP_WOOD
 ```
 
-**Why:** Acceptance criteria should be executable/verifiable code, using proper enum syntax.
+**Why:** Acceptance criteria should be executable/verifiable code that can be tested programmatically, not just descriptions of expected behavior.
 
 ---
 
