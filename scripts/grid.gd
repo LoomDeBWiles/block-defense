@@ -11,9 +11,22 @@ var tiles: Array[Array] = []
 # Pre-defined waypoints per spawn point (0=west, 1=east, 2=north)
 var _path_waypoints: Dictionary = {}
 
+# Container for tile mesh visuals
+var _tile_meshes: Node3D
+
+
+const TILE_COLORS: Dictionary = {
+	Types.TileType.GRASS: Color(0.3, 0.6, 0.2),      # Green
+	Types.TileType.PATH: Color(0.6, 0.5, 0.3),        # Tan/brown
+	Types.TileType.CASTLE: Color(0.5, 0.5, 0.55),     # Grey
+	Types.TileType.BLOCKED: Color(0.2, 0.2, 0.2),     # Dark grey
+	Types.TileType.OCCUPIED: Color(0.2, 0.45, 0.15),  # Darker green
+}
+
 
 func _ready() -> void:
 	_load_default_map()
+	_render_tiles()
 
 
 func _load_default_map() -> void:
@@ -121,3 +134,39 @@ func get_path_waypoints(spawn_id: int) -> Array[Vector3]:
 		elif wp is Array and wp.size() >= 3:
 			waypoints.append(Vector3(wp[0], wp[1], wp[2]))
 	return waypoints
+
+
+func _render_tiles() -> void:
+	# Create container for tile meshes under parent World node
+	var parent := get_parent()
+	if parent == null:
+		return
+
+	_tile_meshes = Node3D.new()
+	_tile_meshes.name = "TileMeshes"
+	parent.add_child(_tile_meshes)
+
+	# Create a plane mesh to reuse
+	var plane_mesh := PlaneMesh.new()
+	plane_mesh.size = Vector2(cell_size * 0.98, cell_size * 0.98)
+
+	# Spawn a MeshInstance3D for each tile
+	for x in range(width):
+		for y in range(height):
+			var tile_type: Types.TileType = tiles[x][y]
+			var mesh_instance := MeshInstance3D.new()
+			mesh_instance.mesh = plane_mesh
+
+			# Create material with tile color
+			var material := StandardMaterial3D.new()
+			material.albedo_color = TILE_COLORS.get(tile_type, Color.MAGENTA)
+			mesh_instance.material_override = material
+
+			# Position at tile center, slightly above ground to avoid z-fighting
+			mesh_instance.position = Vector3(
+				x * cell_size + cell_size / 2.0,
+				0.01,
+				y * cell_size + cell_size / 2.0
+			)
+
+			_tile_meshes.add_child(mesh_instance)
