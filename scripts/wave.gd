@@ -50,7 +50,7 @@ const WAVE_DATA := {
 	17: { 0: [{ "type": Types.EnemyType.SKELETON, "count": 10 }], 1: [{ "type": Types.EnemyType.SLIME, "count": 6 }], 2: [{ "type": Types.EnemyType.ZOMBIE, "count": 8 }] },
 	18: { 0: [{ "type": Types.EnemyType.SLIME, "count": 8 }], 1: [{ "type": Types.EnemyType.SKELETON, "count": 10 }], 2: [{ "type": Types.EnemyType.SKELETON, "count": 6 }] },
 	19: { 0: [{ "type": Types.EnemyType.ZOMBIE, "count": 12 }, { "type": Types.EnemyType.SLIME, "count": 4 }], 1: [{ "type": Types.EnemyType.SKELETON, "count": 10 }], 2: [{ "type": Types.EnemyType.SLIME, "count": 6 }] },
-	20: { 0: [{ "type": Types.EnemyType.ZOMBIE, "count": 15 }, { "type": Types.EnemyType.SLIME, "count": 6 }], 1: [{ "type": Types.EnemyType.SKELETON, "count": 12 }, { "type": Types.EnemyType.SLIME, "count": 4 }], 2: [{ "type": Types.EnemyType.ZOMBIE, "count": 10 }, { "type": Types.EnemyType.TANK_BOSS, "count": 1 }] },
+	20: { 0: [{ "type": Types.EnemyType.ZOMBIE, "count": 15 }, { "type": Types.EnemyType.SLIME, "count": 6 }], 1: [{ "type": Types.EnemyType.SKELETON, "count": 12 }, { "type": Types.EnemyType.SLIME, "count": 4 }], 2: [{ "type": Types.EnemyType.ZOMBIE, "count": 10 }, { "type": Types.EnemyType.NETHER_DRAGON, "count": 1 }] },
 }
 
 # Unlock triggers: wave cleared -> tier unlocked
@@ -179,6 +179,7 @@ func _spawn_enemy(enemy_type: Types.EnemyType, waypoints: Array[Vector3]) -> voi
 	enemy.enemy_died.connect(_on_enemy_died)
 	enemy.reached_castle.connect(_on_enemy_reached_castle)
 	enemy.mini_slime_spawned.connect(_on_mini_slime_spawned)
+	enemy.minion_spawned.connect(_on_minion_spawned)
 
 
 func _on_enemy_died(_enemy: Enemy) -> void:
@@ -190,6 +191,11 @@ func _on_mini_slime_spawned(mini: Enemy) -> void:
 	mini.enemy_died.connect(_on_enemy_died)
 	mini.reached_castle.connect(_on_enemy_reached_castle)
 	mini.mini_slime_spawned.connect(_on_mini_slime_spawned)
+
+
+func _on_minion_spawned(minion: Enemy) -> void:
+	minion.enemy_died.connect(_on_enemy_died)
+	minion.reached_castle.connect(_on_enemy_reached_castle)
 
 
 func _on_enemy_reached_castle(damage: int) -> void:

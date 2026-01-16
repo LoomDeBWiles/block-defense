@@ -5,6 +5,7 @@ extends Node3D
 signal enemy_died(enemy: Enemy)
 signal reached_castle(damage: int)
 signal mini_slime_spawned(mini: Enemy)
+signal minion_spawned(minion: Enemy)
 
 @export var enemy_type: Types.EnemyType = Types.EnemyType.ZOMBIE
 
@@ -18,6 +19,10 @@ var damage_to_castle: int = 10
 var waypoints: Array[Vector3] = []
 var path_index: int = 0
 
+# Nether Dragon minion spawning
+var _minion_spawn_timer: float = 0.0
+const MINION_SPAWN_INTERVAL: float = 3.0  # Spawn minion every 3 seconds
+
 var _health_fill: MeshInstance3D = null
 var _health_bg: MeshInstance3D = null
 
@@ -27,6 +32,7 @@ const ENEMY_STATS := {
 	Types.EnemyType.SKELETON: { "hp": 20, "speed": 1.5, "gold": 8, "castle_dmg": 5 },
 	Types.EnemyType.SLIME: { "hp": 50, "speed": 0.8, "gold": 15, "castle_dmg": 15 },
 	Types.EnemyType.TANK_BOSS: { "hp": 500, "speed": 0.5, "gold": 200, "castle_dmg": 50 },
+	Types.EnemyType.NETHER_DRAGON: { "hp": 800, "speed": 0.6, "gold": 500, "castle_dmg": 100 },
 }
 
 const ENEMY_SCENE := preload("res://scenes/enemy.tscn")
@@ -35,6 +41,7 @@ const ENEMY_SCENE := preload("res://scenes/enemy.tscn")
 func _ready() -> void:
 	_apply_stats()
 	_setup_health_bar()
+	_setup_visual()
 	if waypoints.size() > 0:
 		global_position = waypoints[0]
 	GameState.register_enemy(self)
@@ -77,6 +84,36 @@ func _setup_health_bar() -> void:
 		_health_fill.material_override = fill_mat
 
 
+func _setup_visual() -> void:
+	var model := get_node_or_null("Model")
+	if model == null:
+		return
+
+	var mat := StandardMaterial3D.new()
+
+	# Set color and size based on enemy type
+	match enemy_type:
+		Types.EnemyType.ZOMBIE:
+			mat.albedo_color = Color(0.2, 0.8, 0.2)  # Green
+		Types.EnemyType.SKELETON:
+			mat.albedo_color = Color(0.9, 0.9, 0.9)  # White/bone
+		Types.EnemyType.SLIME:
+			mat.albedo_color = Color(0.2, 0.8, 0.3) if not is_mini else Color(0.3, 0.6, 0.2)  # Green slime
+		Types.EnemyType.TANK_BOSS:
+			mat.albedo_color = Color(0.3, 0.3, 0.3)  # Dark grey tank
+			model.scale = Vector3(1.5, 1.5, 1.5)  # Larger
+		Types.EnemyType.NETHER_DRAGON:
+			mat.albedo_color = Color(0.5, 0.1, 0.6)  # Purple/nether
+			model.scale = Vector3(2.0, 2.0, 2.0)  # Largest boss
+			mat.emission_enabled = true
+			mat.emission = Color(0.7, 0.2, 0.8)  # Glowing purple
+			mat.emission_energy_multiplier = 1.5
+		_:
+			mat.albedo_color = Color(0.8, 0.2, 0.2)  # Default red
+
+	model.material_override = mat
+
+
 func _update_health_bar() -> void:
 	if _health_fill == null:
 		return
@@ -94,6 +131,13 @@ func _physics_process(delta: float) -> void:
 
 	if global_position.distance_to(target_pos) < 0.1:
 		path_index += 1
+
+	# Nether Dragon spawns minions periodically
+	if enemy_type == Types.EnemyType.NETHER_DRAGON:
+		_minion_spawn_timer += delta
+		if _minion_spawn_timer >= MINION_SPAWN_INTERVAL:
+			_minion_spawn_timer = 0.0
+			_spawn_minion()
 
 
 func take_damage(amount: int) -> void:
@@ -137,6 +181,24 @@ func _spawn_mini_slimes() -> void:
 		mini.global_position = global_position + Vector3(randf_range(-0.3, 0.3), 0, randf_range(-0.3, 0.3))
 		parent.add_child(mini)
 		mini_slime_spawned.emit(mini)
+
+
+func _spawn_minion() -> void:
+	# Nether Dragon spawns zombie minions periodically while alive
+	if path_index >= waypoints.size():
+		return  # Dragon reached castle - no waypoints for minions
+	var parent := get_parent()
+	if parent == null:
+		return  # No parent to attach minions to
+	var remaining_waypoints := waypoints.slice(path_index)
+	var minion: Enemy = ENEMY_SCENE.instantiate()
+	minion.enemy_type = Types.EnemyType.ZOMBIE
+	minion.waypoints = remaining_waypoints.duplicate()
+	minion.path_index = 0
+	# Spawn near the dragon
+	minion.global_position = global_position + Vector3(randf_range(-0.5, 0.5), 0, randf_range(-0.5, 0.5))
+	parent.add_child(minion)
+	minion_spawned.emit(minion)
 
 
 func _reached_castle() -> void:
