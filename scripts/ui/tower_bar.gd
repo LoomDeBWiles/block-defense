@@ -172,7 +172,7 @@ func _spawn_ghost() -> void:
 	if _ghost != null:
 		_ghost.queue_free()
 
-	var tower_scene := preload("res://scenes/tower.tscn")
+	var tower_scene: PackedScene = preload("res://scenes/tower.tscn")
 	_ghost = tower_scene.instantiate()
 	# Make semi-transparent
 	_ghost.set_meta("is_ghost", true)
@@ -180,6 +180,9 @@ func _spawn_ghost() -> void:
 	var world := get_tree().root.get_node_or_null("Main/World")
 	if world:
 		world.add_child(_ghost)
+	else:
+		_ghost.queue_free()
+		_ghost = null
 
 
 func _update_ghost_position(screen_pos: Vector2) -> void:
