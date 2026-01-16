@@ -104,7 +104,15 @@ func _position_above_tower() -> void:
 	var tower_pos := _current_tower.global_position + Vector3(0, 1.5, 0)
 	var screen_pos := _camera.unproject_position(tower_pos)
 
-	position = screen_pos - custom_minimum_size / 2
+	# Center on tower position
+	var pos := screen_pos - custom_minimum_size / 2
+
+	# Clamp to viewport bounds
+	var viewport_size := get_viewport().get_visible_rect().size
+	pos.x = clampf(pos.x, 0, viewport_size.x - custom_minimum_size.x)
+	pos.y = clampf(pos.y, 0, viewport_size.y - custom_minimum_size.y)
+
+	position = pos
 
 
 func _on_upgrade_button_pressed() -> void:
