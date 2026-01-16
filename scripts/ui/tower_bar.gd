@@ -229,7 +229,7 @@ func _finish_drag(screen_pos: Vector2) -> void:
 		var t := -from.y / dir.y
 		if t > 0:
 			var world_pos := from + dir * t
-			var grid_pos := Vector2i(roundi(world_pos.x), roundi(world_pos.z))
+			var grid_pos := Vector2i(int(floor(world_pos.x)), int(floor(world_pos.z)))
 			end_drag(grid_pos)
 			return
 
