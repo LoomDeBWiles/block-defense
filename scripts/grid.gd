@@ -144,7 +144,7 @@ func _render_tiles() -> void:
 
 	_tile_meshes = Node3D.new()
 	_tile_meshes.name = "TileMeshes"
-	parent.add_child(_tile_meshes)
+	parent.add_child.call_deferred(_tile_meshes)
 
 	# Create a plane mesh to reuse
 	var plane_mesh := PlaneMesh.new()
