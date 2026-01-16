@@ -184,6 +184,7 @@ func _on_enemy_died(_enemy: Enemy) -> void:
 func _on_mini_slime_spawned(mini: Enemy) -> void:
 	mini.enemy_died.connect(_on_enemy_died)
 	mini.reached_castle.connect(_on_enemy_reached_castle)
+	mini.mini_slime_spawned.connect(_on_mini_slime_spawned)
 
 
 func _on_enemy_reached_castle(damage: int) -> void:
@@ -200,7 +201,7 @@ func _check_wave_complete() -> void:
 	if _spawning:
 		return
 
-	if _enemies_container.get_child_count() == 0:
+	if _enemies_container and _enemies_container.get_child_count() == 0:
 		_complete_wave()
 
 
@@ -232,9 +233,11 @@ func get_active_spawns(wave: int) -> Array[int]:
 	thresholds.sort()
 	for max_wave: int in thresholds:
 		if wave <= max_wave:
-			return Array(SPAWN_PROGRESSION[max_wave], TYPE_INT, "", null)
+			var result: Array[int] = []
+			result.assign(SPAWN_PROGRESSION[max_wave])
+			return result
 	return [0, 1, 2]
 
 
 func is_wave_complete() -> bool:
-	return not _spawning and _enemies_container.get_child_count() == 0
+	return not _spawning and _enemies_container and _enemies_container.get_child_count() == 0
