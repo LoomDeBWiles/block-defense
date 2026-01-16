@@ -85,12 +85,12 @@ func _refresh_display() -> void:
 	var cost := _current_tower.get_upgrade_cost()
 	var is_max_tier := cost < 0
 
-	if is_max_tier:
+	var next_tier = NEXT_TIER.get(_current_tower.material_tier)
+	if is_max_tier or next_tier == null:
 		_info_label.text = "MAX LEVEL"
 		_upgrade_button.text = "---"
 		_upgrade_button.disabled = true
 	else:
-		var next_tier: Types.MaterialTier = NEXT_TIER.get(_current_tower.material_tier)
 		var next_name: String = TIER_NAMES.get(next_tier, "?")
 		_info_label.text = "%s - %d🪙" % [next_name, cost]
 		_upgrade_button.text = "Upgrade"
