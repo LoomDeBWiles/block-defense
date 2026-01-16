@@ -20,16 +20,41 @@ var _projectiles_container: Node = null
 
 # Weapon stats: damage, range, fire_rate (shots/s), aoe_radius
 const WEAPON_STATS := {
+	# Tier 1 - Wood
 	Types.WeaponType.SLINGSHOT: { "damage": 10, "range": 3.0, "fire_rate": 1.0, "aoe": 0.0 },
+	Types.WeaponType.SPEAR: { "damage": 12, "range": 2.5, "fire_rate": 0.8, "aoe": 0.0 },
+	# Tier 2 - Scrap Wood
 	Types.WeaponType.BOW: { "damage": 15, "range": 4.0, "fire_rate": 1.5, "aoe": 0.0 },
+	Types.WeaponType.CATAPULT: { "damage": 20, "range": 5.0, "fire_rate": 0.7, "aoe": 1.0 },
+	# Tier 3 - Solid Metal
 	Types.WeaponType.BALLISTA: { "damage": 40, "range": 5.0, "fire_rate": 0.5, "aoe": 0.0 },
 	Types.WeaponType.TREBUCHET: { "damage": 25, "range": 6.0, "fire_rate": 0.3, "aoe": 2.0 },
+	# Tier 4 - Copper
+	Types.WeaponType.CANNON: { "damage": 50, "range": 6.0, "fire_rate": 0.6, "aoe": 1.5 },
+	Types.WeaponType.EXPLODING_SHELLS: { "damage": 35, "range": 5.5, "fire_rate": 0.8, "aoe": 2.0 },
+	# Tier 5 - Iron Plates
+	Types.WeaponType.ARTILLERY: { "damage": 70, "range": 8.0, "fire_rate": 0.4, "aoe": 2.5 },
+	Types.WeaponType.MACHINE_GUN: { "damage": 8, "range": 4.5, "fire_rate": 5.0, "aoe": 0.0 },
+	# Tier 6 - Steel
+	Types.WeaponType.GRENADE_LAUNCHER: { "damage": 55, "range": 6.5, "fire_rate": 1.0, "aoe": 2.0 },
+	Types.WeaponType.BAZOOKA: { "damage": 90, "range": 7.0, "fire_rate": 0.4, "aoe": 1.5 },
+	# Tier 7 - Diamond
+	Types.WeaponType.MISSILE: { "damage": 80, "range": 9.0, "fire_rate": 0.7, "aoe": 1.8 },
+	Types.WeaponType.RAILGUN: { "damage": 120, "range": 10.0, "fire_rate": 0.3, "aoe": 0.0 },
+	# Tier 8 - Obsidian
+	Types.WeaponType.LASER: { "damage": 100, "range": 8.0, "fire_rate": 2.0, "aoe": 0.0 },
+	Types.WeaponType.NUCLEAR_BOMB: { "damage": 500, "range": 7.0, "fire_rate": 0.1, "aoe": 5.0 },
 }
 
 # Upgrade costs
 const UPGRADE_COSTS := {
 	Types.MaterialTier.WOOD: 75,  # Wood -> Scrap Wood
 	Types.MaterialTier.SCRAP_WOOD: 150,  # Scrap Wood -> Solid Metal
+	Types.MaterialTier.SOLID_METAL: 250,  # Solid Metal -> Copper
+	Types.MaterialTier.COPPER: 400,  # Copper -> Iron Plates
+	Types.MaterialTier.IRON_PLATES: 600,  # Iron Plates -> Steel
+	Types.MaterialTier.STEEL: 900,  # Steel -> Diamond
+	Types.MaterialTier.DIAMOND: 1500,  # Diamond -> Obsidian
 }
 
 const PLACEMENT_COST := 50
@@ -110,34 +135,26 @@ func _fire() -> void:
 	fire_cooldown = 1.0 / fire_rate
 
 
-## Upgrade tower from tier 1 to tier 2 (WOOD -> SCRAP_WOOD)
+## Upgrade tower to next tier
 ## Returns true if upgrade succeeded
 func upgrade() -> bool:
-	if material_tier != Types.MaterialTier.WOOD:
-		return false  # Only works for tier 1
+	# Tier 1 (Wood) auto-upgrades to Tier 2 (Scrap Wood) with Bow
+	if material_tier == Types.MaterialTier.WOOD:
+		var cost: int = UPGRADE_COSTS.get(material_tier, -1)
+		if cost < 0 or not GameState.spend_gold(cost):
+			return false
+		material_tier = Types.MaterialTier.SCRAP_WOOD
+		weapon = Types.WeaponType.BOW
+		_apply_weapon_stats()
+		return true
 
-	var cost: int = UPGRADE_COSTS.get(material_tier, -1)
-	if cost < 0:
-		return false
-
-	if not GameState.spend_gold(cost):
-		return false
-
-	material_tier = Types.MaterialTier.SCRAP_WOOD
-	weapon = Types.WeaponType.BOW
-	_apply_weapon_stats()
-	return true
+	# All other tiers require weapon choice via upgrade_with_weapon
+	return false
 
 
-## Upgrade tower from tier 2 to tier 3 (SCRAP_WOOD -> SOLID_METAL) with weapon choice
+## Upgrade tower to next tier with weapon choice
 ## Returns true if upgrade succeeded
 func upgrade_with_weapon(chosen_weapon: Types.WeaponType) -> bool:
-	if material_tier != Types.MaterialTier.SCRAP_WOOD:
-		return false  # Only works for tier 2
-
-	if chosen_weapon not in [Types.WeaponType.BALLISTA, Types.WeaponType.TREBUCHET]:
-		return false  # Invalid weapon for tier 3
-
 	var cost: int = UPGRADE_COSTS.get(material_tier, -1)
 	if cost < 0:
 		return false
@@ -145,7 +162,17 @@ func upgrade_with_weapon(chosen_weapon: Types.WeaponType) -> bool:
 	if not GameState.spend_gold(cost):
 		return false
 
-	material_tier = Types.MaterialTier.SOLID_METAL
+	# Validate weapon choice for each tier
+	var valid_weapons := get_weapon_choices(material_tier)
+	if valid_weapons.is_empty() or chosen_weapon not in valid_weapons:
+		return false
+
+	# Upgrade to next tier
+	var next_tier := material_tier + 1
+	if next_tier > Types.MaterialTier.OBSIDIAN:
+		return false
+
+	material_tier = next_tier
 	weapon = chosen_weapon
 	_apply_weapon_stats()
 	return true
@@ -161,8 +188,23 @@ func can_upgrade() -> bool:
 
 
 static func get_weapon_choices(tier: Types.MaterialTier) -> Array[Types.WeaponType]:
-	if tier == Types.MaterialTier.SOLID_METAL:
-		return [Types.WeaponType.BALLISTA, Types.WeaponType.TREBUCHET]
+	match tier:
+		Types.MaterialTier.WOOD:
+			return [Types.WeaponType.SLINGSHOT, Types.WeaponType.SPEAR]
+		Types.MaterialTier.SCRAP_WOOD:
+			return [Types.WeaponType.BOW, Types.WeaponType.CATAPULT]
+		Types.MaterialTier.SOLID_METAL:
+			return [Types.WeaponType.BALLISTA, Types.WeaponType.TREBUCHET]
+		Types.MaterialTier.COPPER:
+			return [Types.WeaponType.CANNON, Types.WeaponType.EXPLODING_SHELLS]
+		Types.MaterialTier.IRON_PLATES:
+			return [Types.WeaponType.ARTILLERY, Types.WeaponType.MACHINE_GUN]
+		Types.MaterialTier.STEEL:
+			return [Types.WeaponType.GRENADE_LAUNCHER, Types.WeaponType.BAZOOKA]
+		Types.MaterialTier.DIAMOND:
+			return [Types.WeaponType.MISSILE, Types.WeaponType.RAILGUN]
+		Types.MaterialTier.OBSIDIAN:
+			return [Types.WeaponType.LASER, Types.WeaponType.NUCLEAR_BOMB]
 	return []
 
 

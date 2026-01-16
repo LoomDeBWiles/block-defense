@@ -55,8 +55,13 @@ const WAVE_DATA := {
 
 # Unlock triggers: wave cleared -> tier unlocked
 const UNLOCK_TRIGGERS := {
-	5: Types.MaterialTier.SCRAP_WOOD,
-	10: Types.MaterialTier.SOLID_METAL,
+	2: Types.MaterialTier.SCRAP_WOOD,
+	4: Types.MaterialTier.SOLID_METAL,
+	7: Types.MaterialTier.COPPER,
+	10: Types.MaterialTier.IRON_PLATES,
+	13: Types.MaterialTier.STEEL,
+	16: Types.MaterialTier.DIAMOND,
+	19: Types.MaterialTier.OBSIDIAN,
 }
 
 
