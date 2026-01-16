@@ -82,9 +82,11 @@ func die() -> void:
 func _spawn_mini_slimes() -> void:
 	# Spawn 2 mini-slimes at death position
 	# Mini-slimes have reduced stats and inherit remaining waypoints
-	# Only spawn mini-slimes if path_index < waypoints.size() (remaining waypoints exist)
 	if path_index >= waypoints.size():
 		return  # Slime died at castle - no waypoints for mini-slimes
+	var parent := get_parent()
+	if parent == null:
+		return  # No parent to attach mini-slimes to
 	var remaining_waypoints := waypoints.slice(path_index)
 	for i in range(2):
 		var mini := Enemy.new()
@@ -98,9 +100,8 @@ func _spawn_mini_slimes() -> void:
 		mini.waypoints = remaining_waypoints.duplicate()
 		mini.path_index = 0
 		mini.global_position = global_position + Vector3(randf_range(-0.3, 0.3), 0, randf_range(-0.3, 0.3))
-		if get_parent() != null:
-			get_parent().add_child(mini)
-			mini_slime_spawned.emit(mini)
+		parent.add_child(mini)
+		mini_slime_spawned.emit(mini)
 
 
 func _reached_castle() -> void:
