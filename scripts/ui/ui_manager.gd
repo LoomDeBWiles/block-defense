@@ -6,10 +6,10 @@ var dragging_tier: Types.MaterialTier = Types.MaterialTier.WOOD
 var is_dragging: bool = false
 var selected_tower: Tower = null
 
-@onready var gold_label: Label = $HUD/GoldLabel
-@onready var wave_label: Label = $HUD/WaveLabel
-@onready var castle_hp_label: Label = $HUD/CastleHPLabel
-@onready var start_button: Button = $HUD/StartButton
+@onready var gold_label: Label = $HUD/TopBar/GoldLabel
+@onready var wave_label: Label = $HUD/TopBar/WaveLabel
+@onready var castle_hp_label: Label = $HUD/TopBar/CastleHPLabel
+@onready var start_button: Button = $HUD/BottomBar/StartButton
 @onready var _wave_manager: WaveManager = $"../World/WaveManager"
 @onready var _grid: Grid = $"../World/Grid"
 @onready var _enemies_container: Node = $"../World/Enemies"
@@ -93,12 +93,12 @@ func _try_select_tower(screen_pos: Vector2) -> void:
 		return
 
 	# Check if we hit a tower's ClickArea
-	var collider := result.get("collider")
+	var collider: Variant = result.get("collider")
 	if collider == null:
 		return
 
 	# ClickArea is child of Tower, so get parent
-	var tower_node := collider.get_parent()
+	var tower_node: Node = collider.get_parent()
 	if tower_node is Tower:
 		selected_tower = tower_node
 		show_upgrade_popup(tower_node)
