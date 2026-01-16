@@ -24,6 +24,14 @@ func unregister_enemy(enemy: Enemy) -> void:
 	enemies.erase(enemy)
 
 
+func register_tower(tower: Node) -> void:
+	towers.append(tower)
+
+
+func unregister_tower(tower: Node) -> void:
+	towers.erase(tower)
+
+
 func reset() -> void:
 	gold = 500
 	wave = 1

@@ -39,6 +39,11 @@ const TOWER_SCENE := preload("res://scenes/tower.tscn")
 
 func _ready() -> void:
 	_apply_weapon_stats()
+	GameState.register_tower(self)
+
+
+func _exit_tree() -> void:
+	GameState.unregister_tower(self)
 
 
 func _apply_weapon_stats() -> void:
