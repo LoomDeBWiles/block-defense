@@ -50,8 +50,8 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	# Ignore input during tower drag
-	if _tower_bar and _tower_bar._is_dragging:
+	# Ignore input during tower placement
+	if _tower_bar and _tower_bar._is_placement_mode:
 		return
 
 	# Ignore if popups are open

@@ -27,6 +27,28 @@ var _camera: Camera3D = null
 
 func _ready() -> void:
 	_create_ui()
+	# Enable input processing for escape key
+	set_process_input(true)
+
+
+func _input(event: InputEvent) -> void:
+	if not visible:
+		return
+
+	# Close on Escape key
+	if event.is_action_pressed("ui_cancel"):
+		hide_popup()
+		get_viewport().set_input_as_handled()
+		return
+
+	# Close on click outside popup
+	if event is InputEventMouseButton or event is InputEventScreenTouch:
+		if event.pressed:
+			var local_pos := get_local_mouse_position()
+			var rect := Rect2(Vector2.ZERO, size)
+			if not rect.has_point(local_pos):
+				hide_popup()
+				get_viewport().set_input_as_handled()
 
 
 func _create_ui() -> void:

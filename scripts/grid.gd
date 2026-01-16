@@ -14,6 +14,11 @@ var _path_waypoints: Dictionary = {}
 # Container for tile mesh visuals
 var _tile_meshes: Node3D
 
+# 2D array of mesh references for highlighting: _tile_mesh_refs[x][y]
+var _tile_mesh_refs: Array[Array] = []
+var _is_highlighting: bool = false
+
+const HIGHLIGHT_COLOR := Color(0.4, 0.9, 0.4, 1.0)  # Bright green for placeable
 
 const TILE_COLORS: Dictionary = {
 	Types.TileType.GRASS: Color(0.3, 0.6, 0.2),      # Green
@@ -146,6 +151,13 @@ func _render_tiles() -> void:
 	_tile_meshes.name = "TileMeshes"
 	parent.add_child.call_deferred(_tile_meshes)
 
+	# Initialize mesh refs array
+	_tile_mesh_refs.clear()
+	for x in range(width):
+		var column: Array[MeshInstance3D] = []
+		column.resize(height)
+		_tile_mesh_refs.append(column)
+
 	# Create a plane mesh to reuse
 	var plane_mesh := PlaneMesh.new()
 	plane_mesh.size = Vector2(cell_size * 0.98, cell_size * 0.98)
@@ -156,6 +168,8 @@ func _render_tiles() -> void:
 			var tile_type: Types.TileType = tiles[x][y]
 			var mesh_instance := MeshInstance3D.new()
 			mesh_instance.mesh = plane_mesh
+			mesh_instance.set_meta("grid_x", x)
+			mesh_instance.set_meta("grid_y", y)
 
 			# Create material with tile color
 			var material := StandardMaterial3D.new()
@@ -170,3 +184,49 @@ func _render_tiles() -> void:
 			)
 
 			_tile_meshes.add_child(mesh_instance)
+			_tile_mesh_refs[x][y] = mesh_instance
+
+
+func highlight_placeable_tiles(enabled: bool) -> void:
+	_is_highlighting = enabled
+	if _tile_mesh_refs.is_empty():
+		return
+
+	for x in range(width):
+		for y in range(height):
+			var mesh: MeshInstance3D = _tile_mesh_refs[x][y]
+			if mesh == null:
+				continue
+
+			var tile_type: Types.TileType = tiles[x][y]
+			var mat: StandardMaterial3D = mesh.material_override
+
+			if mat == null:
+				continue
+
+			if enabled and tile_type == Types.TileType.GRASS:
+				# Highlight placeable tiles with bright green
+				mat.albedo_color = HIGHLIGHT_COLOR
+			else:
+				# Restore original color
+				mat.albedo_color = TILE_COLORS.get(tile_type, Color.MAGENTA)
+
+
+func update_tile_visual(pos: Vector2i) -> void:
+	if pos.x < 0 or pos.x >= width or pos.y < 0 or pos.y >= height:
+		return
+	if _tile_mesh_refs.is_empty():
+		return
+
+	var mesh: MeshInstance3D = _tile_mesh_refs[pos.x][pos.y]
+	if mesh == null:
+		return
+
+	var tile_type: Types.TileType = tiles[pos.x][pos.y]
+	var mat: StandardMaterial3D = mesh.material_override
+
+	if mat:
+		if _is_highlighting and tile_type == Types.TileType.GRASS:
+			mat.albedo_color = HIGHLIGHT_COLOR
+		else:
+			mat.albedo_color = TILE_COLORS.get(tile_type, Color.MAGENTA)
