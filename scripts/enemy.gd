@@ -18,6 +18,9 @@ var damage_to_castle: int = 10
 var waypoints: Array[Vector3] = []
 var path_index: int = 0
 
+var _health_fill: MeshInstance3D = null
+var _health_bg: MeshInstance3D = null
+
 # Stats by enemy type
 const ENEMY_STATS := {
 	Types.EnemyType.ZOMBIE: { "hp": 30, "speed": 1.0, "gold": 10, "castle_dmg": 10 },
@@ -31,6 +34,7 @@ const ENEMY_SCENE := preload("res://scenes/enemy.tscn")
 
 func _ready() -> void:
 	_apply_stats()
+	_setup_health_bar()
 	if waypoints.size() > 0:
 		global_position = waypoints[0]
 	GameState.register_enemy(self)
@@ -52,6 +56,34 @@ func _apply_stats() -> void:
 	damage_to_castle = stats.castle_dmg
 
 
+func _setup_health_bar() -> void:
+	var health_bar := get_node_or_null("HealthBar")
+	if health_bar == null:
+		return
+	_health_bg = health_bar.get_node_or_null("Background")
+	_health_fill = health_bar.get_node_or_null("Fill")
+
+	# Set up materials
+	if _health_bg:
+		var bg_mat := StandardMaterial3D.new()
+		bg_mat.albedo_color = Color(0.3, 0.1, 0.1)
+		bg_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_health_bg.material_override = bg_mat
+
+	if _health_fill:
+		var fill_mat := StandardMaterial3D.new()
+		fill_mat.albedo_color = Color(0.2, 0.8, 0.2)
+		fill_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_health_fill.material_override = fill_mat
+
+
+func _update_health_bar() -> void:
+	if _health_fill == null:
+		return
+	var ratio := float(hp) / float(max_hp) if max_hp > 0 else 0.0
+	_health_fill.scale.x = ratio
+
+
 func _physics_process(delta: float) -> void:
 	if path_index >= waypoints.size():
 		_reached_castle()
@@ -66,6 +98,7 @@ func _physics_process(delta: float) -> void:
 
 func take_damage(amount: int) -> void:
 	hp -= amount
+	_update_health_bar()
 	if hp <= 0:
 		die()
 
