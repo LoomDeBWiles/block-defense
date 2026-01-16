@@ -43,12 +43,20 @@ var _tooltip: Label = null
 
 func _ready() -> void:
 	_camera = get_viewport().get_camera_3d()
+	if _camera == null:
+		# Camera may not exist yet during _ready - defer acquisition
+		get_tree().process_frame.connect(_try_acquire_camera, CONNECT_ONE_SHOT)
 	_create_slots()
 	_create_tooltip()
 	_create_press_timer()
 	_refresh_slots()
 	Save.tier_unlocked.connect(_on_tier_unlocked)
 	GameState.gold_changed.connect(_on_gold_changed)
+
+
+func _try_acquire_camera() -> void:
+	if _camera == null:
+		_camera = get_viewport().get_camera_3d()
 
 
 func _create_slots() -> void:
