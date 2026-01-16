@@ -31,6 +31,7 @@ const ENEMY_STATS := {
 	Types.EnemyType.ZOMBIE: { "hp": 30, "speed": 1.0, "gold": 10, "castle_dmg": 10 },
 	Types.EnemyType.SKELETON: { "hp": 20, "speed": 1.5, "gold": 8, "castle_dmg": 5 },
 	Types.EnemyType.SLIME: { "hp": 50, "speed": 0.8, "gold": 15, "castle_dmg": 15 },
+	Types.EnemyType.IRON_GOLEM: { "hp": 150, "speed": 0.6, "gold": 40, "castle_dmg": 30 },
 	Types.EnemyType.TANK_BOSS: { "hp": 500, "speed": 0.5, "gold": 200, "castle_dmg": 50 },
 	Types.EnemyType.NETHER_DRAGON: { "hp": 800, "speed": 0.6, "gold": 500, "castle_dmg": 100 },
 }
@@ -99,6 +100,11 @@ func _setup_visual() -> void:
 			mat.albedo_color = Color(0.9, 0.9, 0.9)  # White/bone
 		Types.EnemyType.SLIME:
 			mat.albedo_color = Color(0.2, 0.8, 0.3) if not is_mini else Color(0.3, 0.6, 0.2)  # Green slime
+		Types.EnemyType.IRON_GOLEM:
+			mat.albedo_color = Color(0.6, 0.6, 0.65)  # Metallic grey/iron
+			model.scale = Vector3(1.3, 1.3, 1.3)  # Larger than regular enemies
+			mat.metallic = 0.8  # Metallic appearance
+			mat.roughness = 0.4  # Shiny metal
 		Types.EnemyType.TANK_BOSS:
 			mat.albedo_color = Color(0.3, 0.3, 0.3)  # Dark grey tank
 			model.scale = Vector3(1.5, 1.5, 1.5)  # Larger
