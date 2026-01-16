@@ -74,6 +74,8 @@ func _find_target() -> void:
 
 	var nearest_dist := INF
 	for child in _enemies_container.get_children():
+		if not is_instance_valid(child):
+			continue
 		if child is Enemy:
 			var dist := global_position.distance_to(child.global_position)
 			if dist <= range_radius and dist < nearest_dist:
@@ -109,7 +111,7 @@ func upgrade() -> bool:
 	if material_tier != Types.MaterialTier.WOOD:
 		return false  # Only works for tier 1
 
-	var cost := UPGRADE_COSTS.get(material_tier, -1)
+	var cost: int = UPGRADE_COSTS.get(material_tier, -1)
 	if cost < 0:
 		return false
 
@@ -131,7 +133,7 @@ func upgrade_with_weapon(chosen_weapon: Types.WeaponType) -> bool:
 	if chosen_weapon not in [Types.WeaponType.BALLISTA, Types.WeaponType.TREBUCHET]:
 		return false  # Invalid weapon for tier 3
 
-	var cost := UPGRADE_COSTS.get(material_tier, -1)
+	var cost: int = UPGRADE_COSTS.get(material_tier, -1)
 	if cost < 0:
 		return false
 
