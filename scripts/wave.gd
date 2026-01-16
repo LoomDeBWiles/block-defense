@@ -201,7 +201,7 @@ func _check_wave_complete() -> void:
 	if _spawning:
 		return
 
-	if _enemies_container and _enemies_container.get_child_count() == 0:
+	if is_instance_valid(_enemies_container) and _enemies_container.get_child_count() == 0:
 		_complete_wave()
 
 
