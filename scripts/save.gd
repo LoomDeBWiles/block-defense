@@ -28,7 +28,7 @@ func load_save() -> void:
 	if window == null:
 		return
 
-	var storage := window.localStorage
+	var storage: Variant = window.localStorage
 	if storage == null:
 		return
 
@@ -47,7 +47,7 @@ func load_save() -> void:
 func _apply_save_data(data: Dictionary) -> void:
 	data = _migrate_save_data(data)
 
-	unlocked_tiers = Array(data.get("unlocked_tiers", [1]), TYPE_INT, "", null)
+	unlocked_tiers.assign(data.get("unlocked_tiers", [1]))
 	highest_wave = data.get("highest_wave", 0)
 	total_gold_earned = data.get("total_gold_earned", 0)
 	games_played = data.get("games_played", 0)
@@ -91,7 +91,7 @@ func save_progress() -> void:
 	if window == null:
 		return
 
-	var storage := window.localStorage
+	var storage: Variant = window.localStorage
 	if storage == null:
 		return
 
@@ -141,6 +141,6 @@ func reset_save() -> void:
 	if OS.has_feature("web"):
 		var window := JavaScriptBridge.get_interface("window")
 		if window != null:
-			var storage := window.localStorage
+			var storage: Variant = window.localStorage
 			if storage != null:
 				storage.removeItem(SAVE_KEY)
