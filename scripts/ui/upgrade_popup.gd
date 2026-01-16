@@ -3,18 +3,28 @@ class_name UpgradePopup
 extends Control
 
 signal upgrade_requested(tower: Tower)
-signal tier3_upgrade_requested(tower: Tower)
+signal weapon_choice_requested(tower: Tower)
 signal popup_closed
 
 const TIER_NAMES := {
 	Types.MaterialTier.WOOD: "Wood",
 	Types.MaterialTier.SCRAP_WOOD: "Scrap Wood",
 	Types.MaterialTier.SOLID_METAL: "Solid Metal",
+	Types.MaterialTier.COPPER: "Copper",
+	Types.MaterialTier.IRON_PLATES: "Iron Plates",
+	Types.MaterialTier.STEEL: "Steel",
+	Types.MaterialTier.DIAMOND: "Diamond",
+	Types.MaterialTier.OBSIDIAN: "Obsidian",
 }
 
 const NEXT_TIER := {
 	Types.MaterialTier.WOOD: Types.MaterialTier.SCRAP_WOOD,
 	Types.MaterialTier.SCRAP_WOOD: Types.MaterialTier.SOLID_METAL,
+	Types.MaterialTier.SOLID_METAL: Types.MaterialTier.COPPER,
+	Types.MaterialTier.COPPER: Types.MaterialTier.IRON_PLATES,
+	Types.MaterialTier.IRON_PLATES: Types.MaterialTier.STEEL,
+	Types.MaterialTier.STEEL: Types.MaterialTier.DIAMOND,
+	Types.MaterialTier.DIAMOND: Types.MaterialTier.OBSIDIAN,
 }
 
 var _current_tower: Tower = null
@@ -141,11 +151,13 @@ func _on_upgrade_button_pressed() -> void:
 	if _current_tower == null:
 		return
 
-	if _current_tower.material_tier == Types.MaterialTier.SCRAP_WOOD:
-		tier3_upgrade_requested.emit(_current_tower)
+	# Tier 1 (Wood) auto-upgrades to Tier 2 with Bow
+	# All other tiers need weapon choice
+	if _current_tower.material_tier == Types.MaterialTier.WOOD:
+		upgrade_requested.emit(_current_tower)
 		hide_popup()
 	else:
-		upgrade_requested.emit(_current_tower)
+		weapon_choice_requested.emit(_current_tower)
 		hide_popup()
 
 

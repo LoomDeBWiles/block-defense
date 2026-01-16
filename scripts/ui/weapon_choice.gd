@@ -6,13 +6,57 @@ signal weapon_chosen(tower: Tower, weapon: Types.WeaponType)
 signal popup_closed
 
 const WEAPON_ICONS := {
-	Types.WeaponType.BALLISTA: "🏹",
+	# Tier 1 - Wood
+	Types.WeaponType.SLINGSHOT: "🎯",
+	Types.WeaponType.SPEAR: "🗡️",
+	# Tier 2 - Scrap Wood
+	Types.WeaponType.BOW: "🏹",
+	Types.WeaponType.CATAPULT: "🪨",
+	# Tier 3 - Solid Metal
+	Types.WeaponType.BALLISTA: "⚔️",
 	Types.WeaponType.TREBUCHET: "💥",
+	# Tier 4 - Copper
+	Types.WeaponType.CANNON: "💣",
+	Types.WeaponType.EXPLODING_SHELLS: "🔥",
+	# Tier 5 - Iron Plates
+	Types.WeaponType.ARTILLERY: "🎆",
+	Types.WeaponType.MACHINE_GUN: "🔫",
+	# Tier 6 - Steel
+	Types.WeaponType.GRENADE_LAUNCHER: "💣",
+	Types.WeaponType.BAZOOKA: "🚀",
+	# Tier 7 - Diamond
+	Types.WeaponType.MISSILE: "🚀",
+	Types.WeaponType.RAILGUN: "⚡",
+	# Tier 8 - Obsidian
+	Types.WeaponType.LASER: "✨",
+	Types.WeaponType.NUCLEAR_BOMB: "☢️",
 }
 
 const WEAPON_NAMES := {
+	# Tier 1 - Wood
+	Types.WeaponType.SLINGSHOT: "Slingshot",
+	Types.WeaponType.SPEAR: "Spear",
+	# Tier 2 - Scrap Wood
+	Types.WeaponType.BOW: "Bow",
+	Types.WeaponType.CATAPULT: "Catapult",
+	# Tier 3 - Solid Metal
 	Types.WeaponType.BALLISTA: "Ballista",
 	Types.WeaponType.TREBUCHET: "Trebuchet",
+	# Tier 4 - Copper
+	Types.WeaponType.CANNON: "Cannon",
+	Types.WeaponType.EXPLODING_SHELLS: "Exploding Shells",
+	# Tier 5 - Iron Plates
+	Types.WeaponType.ARTILLERY: "Artillery",
+	Types.WeaponType.MACHINE_GUN: "Machine Gun",
+	# Tier 6 - Steel
+	Types.WeaponType.GRENADE_LAUNCHER: "Grenade Launcher",
+	Types.WeaponType.BAZOOKA: "Bazooka",
+	# Tier 7 - Diamond
+	Types.WeaponType.MISSILE: "Missile",
+	Types.WeaponType.RAILGUN: "Railgun",
+	# Tier 8 - Obsidian
+	Types.WeaponType.LASER: "Laser",
+	Types.WeaponType.NUCLEAR_BOMB: "Nuclear Bomb",
 }
 
 var _current_tower: Tower = null
@@ -61,7 +105,15 @@ func _populate_weapon_choices() -> void:
 		child.queue_free()
 	_weapon_buttons.clear()
 
-	var choices := Tower.get_weapon_choices(Types.MaterialTier.SOLID_METAL)
+	if _current_tower == null:
+		return
+
+	# Get the NEXT tier's weapon choices (since we're upgrading)
+	var next_tier := _current_tower.material_tier + 1
+	if next_tier > Types.MaterialTier.OBSIDIAN:
+		return
+
+	var choices := Tower.get_weapon_choices(next_tier)
 	for weapon in choices:
 		var button := _create_weapon_button(weapon)
 		_buttons_container.add_child(button)
@@ -76,12 +128,13 @@ func _create_weapon_button(weapon: Types.WeaponType) -> Button:
 	var name := WEAPON_NAMES.get(weapon, "Unknown")
 	var stats: Dictionary = Tower.WEAPON_STATS.get(weapon, {})
 
-	# Key stat: Ballista = damage, Trebuchet = AoE
+	# Show key stat: AoE weapons show AoE, others show damage
 	var key_stat: String
-	if weapon == Types.WeaponType.BALLISTA:
-		key_stat = "DMG: %d" % stats.get("damage", 0)
+	var aoe: float = stats.get("aoe", 0.0)
+	if aoe > 0.0:
+		key_stat = "AoE: %.1f" % aoe
 	else:
-		key_stat = "AoE: %.1f" % stats.get("aoe", 0.0)
+		key_stat = "DMG: %d" % stats.get("damage", 0)
 
 	button.text = "%s\n%s\n%s" % [icon, name, key_stat]
 	button.pressed.connect(_on_weapon_button_pressed.bind(weapon))

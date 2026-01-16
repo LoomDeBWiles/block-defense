@@ -202,7 +202,7 @@ func _create_upgrade_popups() -> void:
 	_upgrade_popup = UpgradePopup.new()
 	_upgrade_popup.visible = false
 	_upgrade_popup.upgrade_requested.connect(_on_upgrade_requested)
-	_upgrade_popup.tier3_upgrade_requested.connect(_on_tier3_upgrade_requested)
+	_upgrade_popup.weapon_choice_requested.connect(_on_weapon_choice_requested)
 	add_child(_upgrade_popup)
 
 	# Create weapon choice popup
@@ -221,7 +221,7 @@ func _on_upgrade_requested(tower: Tower) -> void:
 	tower.upgrade()
 
 
-func _on_tier3_upgrade_requested(tower: Tower) -> void:
+func _on_weapon_choice_requested(tower: Tower) -> void:
 	if _weapon_choice_popup:
 		_weapon_choice_popup.show_for_tower(tower)
 
