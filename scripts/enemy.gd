@@ -26,6 +26,8 @@ const ENEMY_STATS := {
 	Types.EnemyType.TANK_BOSS: { "hp": 500, "speed": 0.5, "gold": 200, "castle_dmg": 50 },
 }
 
+const ENEMY_SCENE := preload("res://scenes/enemy.tscn")
+
 
 func _ready() -> void:
 	_apply_stats()
@@ -89,7 +91,7 @@ func _spawn_mini_slimes() -> void:
 		return  # No parent to attach mini-slimes to
 	var remaining_waypoints := waypoints.slice(path_index)
 	for i in range(2):
-		var mini := Enemy.new()
+		var mini: Enemy = ENEMY_SCENE.instantiate()
 		mini.enemy_type = Types.EnemyType.SLIME
 		mini.is_mini = true
 		mini.hp = 15  # 30% of parent
@@ -112,7 +114,7 @@ func _reached_castle() -> void:
 
 ## Spawns a new enemy and adds it to the Enemies container
 static func spawn_enemy(enemy_type: Types.EnemyType, waypoints: Array[Vector3], enemies_container: Node) -> Enemy:
-	var enemy := Enemy.new()
+	var enemy: Enemy = ENEMY_SCENE.instantiate()
 	enemy.enemy_type = enemy_type
 	enemy.waypoints = waypoints.duplicate()
 	enemies_container.add_child(enemy)
