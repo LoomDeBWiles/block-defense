@@ -32,6 +32,7 @@ const ENEMY_STATS := {
 	Types.EnemyType.SKELETON: { "hp": 20, "speed": 1.5, "gold": 8, "castle_dmg": 5 },
 	Types.EnemyType.SLIME: { "hp": 50, "speed": 0.8, "gold": 15, "castle_dmg": 15 },
 	Types.EnemyType.IRON_GOLEM: { "hp": 150, "speed": 0.6, "gold": 40, "castle_dmg": 30 },
+	Types.EnemyType.ENDERMAN: { "hp": 40, "speed": 1.3, "gold": 20, "castle_dmg": 12 },
 	Types.EnemyType.TANK_BOSS: { "hp": 500, "speed": 0.5, "gold": 200, "castle_dmg": 50 },
 	Types.EnemyType.NETHER_DRAGON: { "hp": 800, "speed": 0.6, "gold": 500, "castle_dmg": 100 },
 }
@@ -105,6 +106,12 @@ func _setup_visual() -> void:
 			model.scale = Vector3(1.3, 1.3, 1.3)  # Larger than regular enemies
 			mat.metallic = 0.8  # Metallic appearance
 			mat.roughness = 0.4  # Shiny metal
+		Types.EnemyType.ENDERMAN:
+			mat.albedo_color = Color(0.1, 0.1, 0.1)  # Nearly black
+			model.scale = Vector3(1.0, 1.4, 0.8)  # Tall and thin
+			mat.emission_enabled = true
+			mat.emission = Color(0.5, 0.1, 0.7)  # Purple particle effect
+			mat.emission_energy_multiplier = 0.8
 		Types.EnemyType.TANK_BOSS:
 			mat.albedo_color = Color(0.3, 0.3, 0.3)  # Dark grey tank
 			model.scale = Vector3(1.5, 1.5, 1.5)  # Larger
@@ -147,6 +154,10 @@ func _physics_process(delta: float) -> void:
 
 
 func take_damage(amount: int) -> void:
+	# Enderman teleports forward when hit (dodging mechanic)
+	if enemy_type == Types.EnemyType.ENDERMAN and hp > 0:
+		_teleport_forward()
+
 	hp -= amount
 	_update_health_bar()
 	if hp <= 0:
@@ -205,6 +216,20 @@ func _spawn_minion() -> void:
 	minion.global_position = global_position + Vector3(randf_range(-0.5, 0.5), 0, randf_range(-0.5, 0.5))
 	parent.add_child(minion)
 	minion_spawned.emit(minion)
+
+
+func _teleport_forward() -> void:
+	# Enderman teleports 2-3 waypoints forward when hit
+	if path_index >= waypoints.size():
+		return  # Already at or past castle
+
+	# Teleport 2-3 waypoints forward (or to end of path)
+	var teleport_distance := randi_range(2, 3)
+	var new_index := mini(path_index + teleport_distance, waypoints.size() - 1)
+
+	if new_index > path_index:
+		path_index = new_index
+		global_position = waypoints[path_index]
 
 
 func _reached_castle() -> void:
