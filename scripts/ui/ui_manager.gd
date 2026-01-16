@@ -99,7 +99,7 @@ func _try_select_tower(screen_pos: Vector2) -> void:
 
 	# ClickArea is child of Tower, so get parent
 	var tower_node: Node = collider.get_parent()
-	if tower_node is Tower:
+	if is_instance_valid(tower_node) and tower_node is Tower:
 		selected_tower = tower_node
 		show_upgrade_popup(tower_node)
 
