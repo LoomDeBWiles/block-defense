@@ -182,15 +182,26 @@ func _spawn_ghost() -> void:
 
 	var tower_scene: PackedScene = preload("res://scenes/tower.tscn")
 	_ghost = tower_scene.instantiate()
-	# Make semi-transparent
-	_ghost.set_meta("is_ghost", true)
 	# Add to world so it renders in 3D space
 	var world := get_tree().root.get_node_or_null("Main/World")
 	if world:
 		world.add_child(_ghost)
+		# Make semi-transparent
+		_apply_ghost_material(_ghost)
 	else:
 		_ghost.queue_free()
 		_ghost = null
+
+
+func _apply_ghost_material(node: Node) -> void:
+	if node is MeshInstance3D:
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = Color(0.5, 0.8, 1.0, 0.5)
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		node.material_override = mat
+	for child in node.get_children():
+		_apply_ghost_material(child)
 
 
 func _update_ghost_position(screen_pos: Vector2) -> void:
