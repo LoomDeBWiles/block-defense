@@ -86,6 +86,7 @@ func _try_select_tower(screen_pos: Vector2) -> void:
 
 	var space_state := _camera.get_world_3d().direct_space_state
 	var query := PhysicsRayQueryParameters3D.create(from, to)
+	query.collide_with_areas = true
 	var result := space_state.intersect_ray(query)
 
 	if result.is_empty():
