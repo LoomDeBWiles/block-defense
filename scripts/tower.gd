@@ -9,6 +9,10 @@ extends Node3D
 var target: Enemy = null
 var fire_cooldown: float = 0.0
 
+# Laser beam state
+var _laser_beam_visual: MeshInstance3D = null
+var _laser_beam_material: StandardMaterial3D = null
+
 # Derived stats
 var damage: int = 10
 var range_radius: float = 3.0
@@ -81,6 +85,7 @@ func _apply_weapon_stats() -> void:
 
 func _physics_process(delta: float) -> void:
 	if GameState.phase != Types.GamePhase.COMBAT:
+		_cleanup_laser_beam()
 		return
 
 	fire_cooldown = max(0.0, fire_cooldown - delta)
@@ -90,6 +95,10 @@ func _physics_process(delta: float) -> void:
 	elif global_position.distance_to(target.global_position) > range_radius:
 		target = null
 		_find_target()
+
+	# Handle laser beam cleanup when target lost
+	if weapon == Types.WeaponType.LASER and (target == null or not is_instance_valid(target)):
+		_cleanup_laser_beam()
 
 	if target != null and is_instance_valid(target):
 		_rotate_toward_target()
@@ -131,11 +140,18 @@ func _fire() -> void:
 		fire_cooldown = 1.0 / fire_rate
 		return
 
+	# Laser: continuous melting beam that damages per tick
+	if weapon == Types.WeaponType.LASER:
+		_fire_laser()
+		fire_cooldown = 1.0 / fire_rate
+		return
+
 	var projectile: Projectile = PROJECTILE_SCENE.instantiate()
 	projectile.target = target
 	projectile.damage = damage
 	projectile.aoe_radius = aoe_radius
 	projectile.weapon_type = weapon
+	projectile.damage_type = Projectile.get_damage_type(weapon)
 	projectile.hazards_container = _projectiles_container
 	_projectiles_container.add_child(projectile)
 	projectile.global_position = global_position
@@ -215,6 +231,58 @@ func _spawn_beam_visual(start: Vector3, end: Vector3) -> void:
 	var tween := beam.create_tween()
 	tween.tween_property(mat, "albedo_color:a", 0.0, 0.15)
 	tween.tween_callback(beam.queue_free)
+
+
+func _fire_laser() -> void:
+	if target == null or not is_instance_valid(target):
+		_cleanup_laser_beam()
+		return
+
+	# Deal damage tick to target
+	target.take_damage(damage, Types.DamageType.EXPLOSIVE)
+
+	# Update or create visual beam
+	_update_laser_beam_visual()
+
+
+func _update_laser_beam_visual() -> void:
+	if target == null or not is_instance_valid(target):
+		_cleanup_laser_beam()
+		return
+
+	var start := global_position
+	var end := target.global_position
+	var length := start.distance_to(end)
+
+	if _laser_beam_visual == null or not is_instance_valid(_laser_beam_visual):
+		# Create persistent beam visual
+		_laser_beam_visual = MeshInstance3D.new()
+		var box := BoxMesh.new()
+		box.size = Vector3(0.15, 0.15, 1.0)  # Z will be scaled
+		_laser_beam_visual.mesh = box
+
+		_laser_beam_material = StandardMaterial3D.new()
+		_laser_beam_material.albedo_color = Color(1.0, 0.3, 0.1)  # Orange-red melting beam
+		_laser_beam_material.emission_enabled = true
+		_laser_beam_material.emission = Color(1.0, 0.4, 0.1)
+		_laser_beam_material.emission_energy_multiplier = 4.0
+		_laser_beam_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+
+		_laser_beam_visual.material_override = _laser_beam_material
+		_projectiles_container.add_child(_laser_beam_visual)
+
+	# Update beam position and scale
+	_laser_beam_visual.scale.z = length
+	var midpoint := (start + end) / 2.0
+	_laser_beam_visual.global_position = midpoint
+	_laser_beam_visual.look_at(end, Vector3.UP)
+
+
+func _cleanup_laser_beam() -> void:
+	if _laser_beam_visual != null and is_instance_valid(_laser_beam_visual):
+		_laser_beam_visual.queue_free()
+	_laser_beam_visual = null
+	_laser_beam_material = null
 
 
 ## Upgrade tower to next tier
