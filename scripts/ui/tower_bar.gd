@@ -91,6 +91,8 @@ func _create_confirmation_popup() -> void:
 	_confirmation_popup = PanelContainer.new()
 	_confirmation_popup.visible = false
 	_confirmation_popup.custom_minimum_size = Vector2(180, 100)
+	# Capture mouse events so clicks don't pass through to _unhandled_input
+	_confirmation_popup.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	var vbox := VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -331,7 +333,7 @@ func _get_grid() -> Grid:
 	return null
 
 
-func _input(event: InputEvent) -> void:
+func _unhandled_input(event: InputEvent) -> void:
 	if not _is_placement_mode:
 		return
 
@@ -341,7 +343,7 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
-	# Handle clicks on the game world
+	# Handle clicks on the game world (only if not handled by UI)
 	if event is InputEventMouseButton or event is InputEventScreenTouch:
 		if event.pressed:
 			var screen_pos: Vector2
