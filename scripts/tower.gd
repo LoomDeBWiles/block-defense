@@ -245,7 +245,7 @@ func _fire_laser() -> void:
 		return
 
 	# Deal damage tick to target
-	target.take_damage(damage, Types.DamageType.EXPLOSIVE)
+	target.take_damage(damage, Projectile.get_damage_type(weapon))
 
 	# Update or create visual beam
 	_update_laser_beam_visual()
