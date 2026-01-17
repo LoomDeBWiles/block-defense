@@ -20,6 +20,7 @@ var selected_tower: Tower = null
 @onready var _victory_waves_label: Label = $HUD/VictoryScreen/VBox/WavesLabel
 @onready var _victory_towers_label: Label = $HUD/VictoryScreen/VBox/TowersLabel
 @onready var _victory_gold_label: Label = $HUD/VictoryScreen/VBox/GoldLabel
+var _endless_button: Button
 
 # Game over screen components
 var _game_over_screen: PanelContainer
@@ -43,8 +44,10 @@ func _ready() -> void:
 		_wave_manager.setup(_grid, _enemies_container)
 		_wave_manager.game_over.connect(show_game_over)
 		_wave_manager.victory.connect(show_victory)
+		_wave_manager.endless_started.connect(_on_endless_started)
 
 	_create_game_over_screen()
+	_create_endless_button()
 	_create_upgrade_popups()
 	_update_displays()
 
@@ -117,7 +120,10 @@ func update_gold(amount: int) -> void:
 
 func update_wave(wave: int) -> void:
 	if wave_label:
-		wave_label.text = "WAVE %d/20" % wave
+		if _wave_manager and _wave_manager.is_endless_mode():
+			wave_label.text = "WAVE %d (ENDLESS)" % wave
+		else:
+			wave_label.text = "WAVE %d/20" % wave
 
 
 func update_castle_hp(hp: int) -> void:
@@ -191,10 +197,44 @@ func _create_game_over_screen() -> void:
 	add_child(_game_over_screen)
 
 
+func _create_endless_button() -> void:
+	if _victory_screen == null:
+		return
+
+	var vbox: VBoxContainer = _victory_screen.get_node_or_null("VBox")
+	if vbox == null:
+		return
+
+	# Add spacer before button
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 10)
+	vbox.add_child(spacer)
+
+	# Create endless mode button
+	_endless_button = Button.new()
+	_endless_button.name = "EndlessButton"
+	_endless_button.text = "ENDLESS MODE"
+	_endless_button.custom_minimum_size = Vector2(150, 40)
+	_endless_button.pressed.connect(_on_endless_pressed)
+	vbox.add_child(_endless_button)
+
+
 func _on_retry_pressed() -> void:
 	get_tree().paused = false
 	GameState.reset()
 	get_tree().reload_current_scene()
+
+
+func _on_endless_pressed() -> void:
+	get_tree().paused = false
+	_victory_screen.visible = false
+	if _wave_manager:
+		_wave_manager.start_endless_mode()
+
+
+func _on_endless_started() -> void:
+	# Wave label already updates via wave_changed signal
+	pass
 
 
 func _create_upgrade_popups() -> void:
