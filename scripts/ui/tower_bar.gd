@@ -29,6 +29,8 @@ const WEAPON_NAMES := {
 const SLOT_SIZE := Vector2(80, 60)
 const SELECTED_COLOR := Color(0.3, 0.7, 0.3, 1.0)
 const NORMAL_COLOR := Color(0.3, 0.3, 0.3, 1.0)
+const GHOST_VALID_COLOR := Color(0.3, 0.5, 0.9, 0.5)  # Semi-transparent blue
+const GHOST_INVALID_COLOR := Color(0.9, 0.3, 0.3, 0.5)  # Semi-transparent red
 
 var _slots: Dictionary = {}  # MaterialTier -> Button
 var _selected_tier: Types.MaterialTier = Types.MaterialTier.WOOD
@@ -37,6 +39,8 @@ var _camera: Camera3D = null
 var _grid: Grid = null
 var _confirmation_popup: Control = null
 var _pending_grid_pos: Vector2i = Vector2i.ZERO
+var _ghost_tower: MeshInstance3D = null
+var _ghost_material: StandardMaterial3D = null
 
 
 func _ready() -> void:
@@ -111,6 +115,77 @@ func _create_confirmation_popup() -> void:
 		add_child.call_deferred(_confirmation_popup)
 
 
+func _process(_delta: float) -> void:
+	if not _is_placement_mode:
+		return
+	_update_ghost_position()
+
+
+func _create_ghost_tower() -> void:
+	if _ghost_tower != null:
+		return
+
+	_ghost_tower = MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = Vector3(0.8, 1.0, 0.8)  # Same size as tower
+	_ghost_tower.mesh = box
+
+	_ghost_material = StandardMaterial3D.new()
+	_ghost_material.albedo_color = GHOST_VALID_COLOR
+	_ghost_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_ghost_tower.material_override = _ghost_material
+
+	# Position at center of mesh (tower base is at y=0, mesh center at y=0.5)
+	_ghost_tower.position.y = 0.5
+
+	# Add to World node so it renders in 3D space
+	var world := get_tree().root.get_node_or_null("Main/World")
+	if world:
+		world.add_child(_ghost_tower)
+
+
+func _remove_ghost_tower() -> void:
+	if _ghost_tower != null and is_instance_valid(_ghost_tower):
+		_ghost_tower.queue_free()
+	_ghost_tower = null
+	_ghost_material = null
+
+
+func _update_ghost_position() -> void:
+	if _ghost_tower == null or _camera == null:
+		return
+
+	var screen_pos := get_viewport().get_mouse_position()
+
+	# Don't show ghost when mouse is over UI
+	if _is_click_on_ui(screen_pos):
+		_ghost_tower.visible = false
+		return
+
+	var from := _camera.project_ray_origin(screen_pos)
+	var dir := _camera.project_ray_normal(screen_pos)
+
+	# Find intersection with y=0 plane (grid level)
+	if abs(dir.y) > 0.001:
+		var t := -from.y / dir.y
+		if t > 0:
+			var world_pos := from + dir * t
+			var grid_pos := Vector2i(int(floor(world_pos.x)), int(floor(world_pos.z)))
+
+			# Snap to grid center
+			_ghost_tower.position.x = grid_pos.x + 0.5
+			_ghost_tower.position.z = grid_pos.y + 0.5
+			_ghost_tower.visible = true
+
+			# Update color based on validity
+			var is_valid := _grid != null and _grid.can_place(grid_pos)
+			_ghost_material.albedo_color = GHOST_VALID_COLOR if is_valid else GHOST_INVALID_COLOR
+		else:
+			_ghost_tower.visible = false
+	else:
+		_ghost_tower.visible = false
+
+
 func _refresh_slots() -> void:
 	var can_afford := GameState.gold >= Tower.PLACEMENT_COST
 	for tier: Types.MaterialTier in _slots:
@@ -169,6 +244,7 @@ func enter_placement_mode(tier: Types.MaterialTier) -> void:
 	if _grid:
 		_grid.highlight_placeable_tiles(true)
 
+	_create_ghost_tower()
 	tower_selected.emit(tier)
 
 
@@ -176,6 +252,7 @@ func exit_placement_mode() -> void:
 	_is_placement_mode = false
 	_hide_confirmation_popup()
 	_refresh_slots()
+	_remove_ghost_tower()
 
 	if _grid:
 		_grid.highlight_placeable_tiles(false)
@@ -220,6 +297,11 @@ func _input(event: InputEvent) -> void:
 
 
 func _is_click_on_ui(screen_pos: Vector2) -> bool:
+	# Check if click is on confirmation popup
+	if _confirmation_popup and _confirmation_popup.visible:
+		var popup_rect := Rect2(_confirmation_popup.position, _confirmation_popup.size)
+		if popup_rect.has_point(screen_pos):
+			return true
 	# Check if click is on bottom bar area (where buttons are)
 	var viewport_size := get_viewport().get_visible_rect().size
 	return screen_pos.y > viewport_size.y - 100
