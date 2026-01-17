@@ -38,20 +38,20 @@ const WAVE_DATA := {
 	4: { 0: [{ "type": Types.EnemyType.ZOMBIE, "count": 8 }, { "type": Types.EnemyType.SKELETON, "count": 4 }] },
 	5: { 0: [{ "type": Types.EnemyType.SLIME, "count": 4 }, { "type": Types.EnemyType.SKELETON, "count": 4 }] },
 	6: { 0: [{ "type": Types.EnemyType.ZOMBIE, "count": 6 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 1 }], 1: [{ "type": Types.EnemyType.ZOMBIE, "count": 4 }] },
-	7: { 0: [{ "type": Types.EnemyType.SKELETON, "count": 5 }], 1: [{ "type": Types.EnemyType.ZOMBIE, "count": 5 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 1 }] },
+	7: { 0: [{ "type": Types.EnemyType.SKELETON, "count": 5 }, { "type": Types.EnemyType.SPIDER, "count": 3 }], 1: [{ "type": Types.EnemyType.ZOMBIE, "count": 5 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 1 }] },
 	8: { 0: [{ "type": Types.EnemyType.SLIME, "count": 4 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 2 }], 1: [{ "type": Types.EnemyType.ENDERMAN, "count": 2 }, { "type": Types.EnemyType.SLIME, "count": 4 }] },
 	9: { 0: [{ "type": Types.EnemyType.ZOMBIE, "count": 6 }, { "type": Types.EnemyType.SKELETON, "count": 4 }], 1: [{ "type": Types.EnemyType.ENDERMAN, "count": 3 }, { "type": Types.EnemyType.ZOMBIE, "count": 6 }] },
 	10: { 0: [{ "type": Types.EnemyType.ZOMBIE, "count": 8 }, { "type": Types.EnemyType.TANK_BOSS, "count": 1 }], 1: [{ "type": Types.EnemyType.ZOMBIE, "count": 6 }, { "type": Types.EnemyType.SKELETON, "count": 4 }] },
 	# Waves 11-20 follow similar patterns with increasing difficulty
-	11: { 0: [{ "type": Types.EnemyType.SKELETON, "count": 8 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 2 }], 1: [{ "type": Types.EnemyType.ENDERMAN, "count": 2 }, { "type": Types.EnemyType.SLIME, "count": 5 }] },
+	11: { 0: [{ "type": Types.EnemyType.SKELETON, "count": 8 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 2 }], 1: [{ "type": Types.EnemyType.ENDERMAN, "count": 2 }, { "type": Types.EnemyType.SPIDER, "count": 4 }] },
 	12: { 0: [{ "type": Types.EnemyType.ZOMBIE, "count": 10 }], 1: [{ "type": Types.EnemyType.ENDERMAN, "count": 3 }, { "type": Types.EnemyType.SKELETON, "count": 8 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 2 }] },
 	13: { 0: [{ "type": Types.EnemyType.ZOMBIE, "count": 6 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 1 }], 1: [{ "type": Types.EnemyType.ENDERMAN, "count": 2 }, { "type": Types.EnemyType.ZOMBIE, "count": 6 }], 2: [{ "type": Types.EnemyType.ZOMBIE, "count": 4 }] },
-	14: { 0: [{ "type": Types.EnemyType.SKELETON, "count": 6 }], 1: [{ "type": Types.EnemyType.SLIME, "count": 4 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 2 }], 2: [{ "type": Types.EnemyType.ENDERMAN, "count": 3 }, { "type": Types.EnemyType.ZOMBIE, "count": 6 }] },
+	14: { 0: [{ "type": Types.EnemyType.SKELETON, "count": 6 }, { "type": Types.EnemyType.SPIDER, "count": 3 }], 1: [{ "type": Types.EnemyType.SLIME, "count": 4 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 2 }], 2: [{ "type": Types.EnemyType.ENDERMAN, "count": 3 }, { "type": Types.EnemyType.ZOMBIE, "count": 6 }] },
 	15: { 0: [{ "type": Types.EnemyType.SLIME, "count": 6 }], 1: [{ "type": Types.EnemyType.ENDERMAN, "count": 4 }, { "type": Types.EnemyType.SKELETON, "count": 6 }], 2: [{ "type": Types.EnemyType.SKELETON, "count": 4 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 2 }] },
 	16: { 0: [{ "type": Types.EnemyType.ZOMBIE, "count": 10 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 3 }], 1: [{ "type": Types.EnemyType.ENDERMAN, "count": 3 }, { "type": Types.EnemyType.ZOMBIE, "count": 10 }], 2: [{ "type": Types.EnemyType.SLIME, "count": 5 }] },
-	17: { 0: [{ "type": Types.EnemyType.SKELETON, "count": 10 }], 1: [{ "type": Types.EnemyType.SLIME, "count": 6 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 3 }], 2: [{ "type": Types.EnemyType.ENDERMAN, "count": 4 }, { "type": Types.EnemyType.ZOMBIE, "count": 8 }] },
+	17: { 0: [{ "type": Types.EnemyType.SKELETON, "count": 10 }], 1: [{ "type": Types.EnemyType.SPIDER, "count": 5 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 3 }], 2: [{ "type": Types.EnemyType.ENDERMAN, "count": 4 }, { "type": Types.EnemyType.ZOMBIE, "count": 8 }] },
 	18: { 0: [{ "type": Types.EnemyType.ENDERMAN, "count": 5 }, { "type": Types.EnemyType.SLIME, "count": 8 }], 1: [{ "type": Types.EnemyType.SKELETON, "count": 10 }], 2: [{ "type": Types.EnemyType.SKELETON, "count": 6 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 3 }] },
-	19: { 0: [{ "type": Types.EnemyType.ZOMBIE, "count": 12 }, { "type": Types.EnemyType.SLIME, "count": 4 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 2 }], 1: [{ "type": Types.EnemyType.ENDERMAN, "count": 5 }, { "type": Types.EnemyType.SKELETON, "count": 10 }], 2: [{ "type": Types.EnemyType.SLIME, "count": 6 }] },
+	19: { 0: [{ "type": Types.EnemyType.ZOMBIE, "count": 12 }, { "type": Types.EnemyType.SLIME, "count": 4 }, { "type": Types.EnemyType.IRON_GOLEM, "count": 2 }], 1: [{ "type": Types.EnemyType.ENDERMAN, "count": 5 }, { "type": Types.EnemyType.SKELETON, "count": 10 }], 2: [{ "type": Types.EnemyType.SPIDER, "count": 6 }] },
 	20: { 0: [{ "type": Types.EnemyType.ZOMBIE, "count": 15 }, { "type": Types.EnemyType.SLIME, "count": 6 }], 1: [{ "type": Types.EnemyType.ENDERMAN, "count": 6 }, { "type": Types.EnemyType.SKELETON, "count": 12 }, { "type": Types.EnemyType.SLIME, "count": 4 }], 2: [{ "type": Types.EnemyType.ZOMBIE, "count": 10 }, { "type": Types.EnemyType.NETHER_DRAGON, "count": 1 }] },
 }
 
@@ -131,6 +131,7 @@ func _generate_endless_wave_data(wave: int) -> WaveData:
 	var base_zombie := int(10 * scale_factor)
 	var base_skeleton := int(8 * scale_factor)
 	var base_slime := int(4 * scale_factor)
+	var base_spider := int(4 * scale_factor)
 	var base_iron_golem := int(2 + waves_past_20 / 3)
 	var base_enderman := int(3 + waves_past_20 / 2)
 
@@ -146,6 +147,7 @@ func _generate_endless_wave_data(wave: int) -> WaveData:
 			1:
 				group.enemies.append(SpawnEntry.new(Types.EnemyType.SKELETON, base_skeleton))
 				group.enemies.append(SpawnEntry.new(Types.EnemyType.ENDERMAN, base_enderman))
+				group.enemies.append(SpawnEntry.new(Types.EnemyType.SPIDER, base_spider))
 			2:
 				group.enemies.append(SpawnEntry.new(Types.EnemyType.SLIME, base_slime))
 				group.enemies.append(SpawnEntry.new(Types.EnemyType.ZOMBIE, base_zombie / 2))
