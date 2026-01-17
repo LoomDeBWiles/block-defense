@@ -377,4 +377,9 @@ static func spawn_tower(grid_pos: Vector2i, grid: Grid, towers_container: Node, 
 	towers_container.add_child(tower)
 	grid.mark_occupied(grid_pos)
 
+	# Bouncy placement animation: scale from 0 to 1 with elastic bounce
+	tower.scale = Vector3.ZERO
+	var tween := tower.create_tween()
+	tween.tween_property(tower, "scale", Vector3.ONE, 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
+
 	return tower
