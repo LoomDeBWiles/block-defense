@@ -29,10 +29,13 @@ const WEAPON_NAMES := {
 const SLOT_SIZE := Vector2(80, 60)
 const SELECTED_COLOR := Color(0.3, 0.7, 0.3, 1.0)
 const NORMAL_COLOR := Color(0.3, 0.3, 0.3, 1.0)
+const HOVER_COLOR := Color(0.45, 0.45, 0.45, 1.0)  # Lighter background on hover
 const GHOST_VALID_COLOR := Color(0.3, 0.5, 0.9, 0.5)  # Semi-transparent blue
 const GHOST_INVALID_COLOR := Color(0.9, 0.3, 0.3, 0.5)  # Semi-transparent red
+const HOVER_SOUND_PATH := "res://assets/sounds/Audio/rollover1.ogg"
 
 var _slots: Dictionary = {}  # MaterialTier -> Button
+var _hovered_slot: Button = null  # Currently hovered button
 var _selected_tier: Types.MaterialTier = Types.MaterialTier.WOOD
 var _is_placement_mode: bool = false
 var _camera: Camera3D = null
@@ -41,12 +44,14 @@ var _confirmation_popup: Control = null
 var _pending_grid_pos: Vector2i = Vector2i.ZERO
 var _ghost_tower: MeshInstance3D = null
 var _ghost_material: StandardMaterial3D = null
+var _hover_sound: AudioStreamPlayer = null
 
 
 func _ready() -> void:
 	_camera = get_viewport().get_camera_3d()
 	if _camera == null:
 		get_tree().process_frame.connect(_try_acquire_camera, CONNECT_ONE_SHOT)
+	_create_hover_sound()
 	_create_slots()
 	_create_confirmation_popup()
 	_refresh_slots()
@@ -59,6 +64,15 @@ func _try_acquire_camera() -> void:
 		_camera = get_viewport().get_camera_3d()
 
 
+func _create_hover_sound() -> void:
+	_hover_sound = AudioStreamPlayer.new()
+	var stream := load(HOVER_SOUND_PATH)
+	if stream:
+		_hover_sound.stream = stream
+		_hover_sound.volume_db = -10.0  # Subtle hover sound
+	add_child(_hover_sound)
+
+
 func _create_slots() -> void:
 	for tier_value in [1, 2, 3]:
 		var tier: Types.MaterialTier = tier_value as Types.MaterialTier
@@ -67,6 +81,8 @@ func _create_slots() -> void:
 		slot.text = TIER_NAMES.get(tier, "?") + "\n%d🪙" % Tower.PLACEMENT_COST
 		slot.set_meta("tier", tier)
 		slot.pressed.connect(_on_slot_clicked.bind(tier))
+		slot.mouse_entered.connect(_on_slot_hover_entered.bind(slot))
+		slot.mouse_exited.connect(_on_slot_hover_exited.bind(slot))
 		add_child(slot)
 		_slots[tier] = slot
 
@@ -118,11 +134,22 @@ func _create_confirmation_popup() -> void:
 func _process(_delta: float) -> void:
 	if not _is_placement_mode:
 		return
+	# Retry ghost creation if it failed initially (e.g. World wasn't ready)
+	if _ghost_tower == null or not _ghost_tower.is_inside_tree():
+		_create_ghost_tower()
 	_update_ghost_position()
 
 
 func _create_ghost_tower() -> void:
+	# Clean up existing ghost if it's orphaned (not in tree)
 	if _ghost_tower != null:
+		if _ghost_tower.is_inside_tree():
+			return
+		_ghost_tower.queue_free()
+		_ghost_tower = null
+
+	var world := get_tree().root.get_node_or_null("Main/World")
+	if world == null:
 		return
 
 	_ghost_tower = MeshInstance3D.new()
@@ -137,11 +164,7 @@ func _create_ghost_tower() -> void:
 
 	# Position at center of mesh (tower base is at y=0, mesh center at y=0.5)
 	_ghost_tower.position.y = 0.5
-
-	# Add to World node so it renders in 3D space
-	var world := get_tree().root.get_node_or_null("Main/World")
-	if world:
-		world.add_child(_ghost_tower)
+	world.add_child(_ghost_tower)
 
 
 func _remove_ghost_tower() -> void:
@@ -152,7 +175,12 @@ func _remove_ghost_tower() -> void:
 
 
 func _update_ghost_position() -> void:
-	if _ghost_tower == null or _camera == null:
+	if _ghost_tower == null:
+		return
+	# Retry camera acquisition if needed
+	if _camera == null:
+		_camera = get_viewport().get_camera_3d()
+	if _camera == null:
 		return
 
 	var screen_pos := get_viewport().get_mouse_position()
@@ -210,6 +238,42 @@ func _create_selected_style() -> StyleBoxFlat:
 	style.set_border_width_all(3)
 	style.set_corner_radius_all(4)
 	return style
+
+
+func _create_hover_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = HOVER_COLOR
+	style.border_color = Color(0.6, 0.6, 0.6, 1.0)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(4)
+	return style
+
+
+func _on_slot_hover_entered(slot: Button) -> void:
+	if slot.disabled:
+		return
+	_hovered_slot = slot
+	_apply_hover_style(slot)
+	if _hover_sound:
+		_hover_sound.play()
+
+
+func _on_slot_hover_exited(slot: Button) -> void:
+	if _hovered_slot == slot:
+		_hovered_slot = null
+	_remove_hover_style(slot)
+
+
+func _apply_hover_style(slot: Button) -> void:
+	# Don't override selected style
+	var tier: Types.MaterialTier = slot.get_meta("tier")
+	if _is_placement_mode and tier == _selected_tier:
+		return
+	slot.add_theme_stylebox_override("hover", _create_hover_style())
+
+
+func _remove_hover_style(slot: Button) -> void:
+	slot.remove_theme_stylebox_override("hover")
 
 
 func _on_tier_unlocked(_tier: Types.MaterialTier) -> void:
