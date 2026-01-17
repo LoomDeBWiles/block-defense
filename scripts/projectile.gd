@@ -42,8 +42,44 @@ func _physics_process(delta: float) -> void:
 		_hit()
 
 
+func _spawn_nuke_visual() -> void:
+	if hazards_container == null:
+		return
+
+	# Screen-wide flash effect using a large sphere
+	var flash := MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 50.0  # Large enough to cover visible area
+	sphere.height = 100.0
+
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(1.0, 0.9, 0.5, 0.8)  # Bright yellow-white
+	mat.emission_enabled = true
+	mat.emission = Color(1.0, 0.8, 0.3)
+	mat.emission_energy_multiplier = 5.0
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+
+	flash.mesh = sphere
+	flash.material_override = mat
+
+	flash.global_position = global_position
+	hazards_container.add_child(flash)
+
+	# Fade out the flash
+	var tween := flash.create_tween()
+	tween.tween_property(mat, "albedo_color:a", 0.0, 0.5)
+	tween.tween_callback(flash.queue_free)
+
+
 func _hit() -> void:
-	if aoe_radius > 0.0:
+	if weapon_type == Types.WeaponType.NUCLEAR_BOMB:
+		# Screen-clearing ultimate - damage ALL enemies
+		_spawn_nuke_visual()
+		for enemy in GameState.enemies:
+			if is_instance_valid(enemy):
+				enemy.take_damage(damage, damage_type)
+	elif aoe_radius > 0.0:
 		# AoE damage
 		var targets := Enemy.get_enemies_in_radius(global_position, aoe_radius)
 		for enemy in targets:
