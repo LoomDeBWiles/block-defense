@@ -33,6 +33,7 @@ const ENEMY_STATS := {
 	Types.EnemyType.SLIME: { "hp": 50, "speed": 0.8, "gold": 15, "castle_dmg": 15 },
 	Types.EnemyType.IRON_GOLEM: { "hp": 150, "speed": 0.6, "gold": 40, "castle_dmg": 30 },
 	Types.EnemyType.ENDERMAN: { "hp": 40, "speed": 1.3, "gold": 20, "castle_dmg": 12 },
+	Types.EnemyType.SPIDER: { "hp": 25, "speed": 1.8, "gold": 12, "castle_dmg": 8 },
 	Types.EnemyType.TANK_BOSS: { "hp": 500, "speed": 0.5, "gold": 200, "castle_dmg": 50 },
 	Types.EnemyType.NETHER_DRAGON: { "hp": 800, "speed": 0.6, "gold": 500, "castle_dmg": 100 },
 }
@@ -112,6 +113,9 @@ func _setup_visual() -> void:
 			mat.emission_enabled = true
 			mat.emission = Color(0.5, 0.1, 0.7)  # Purple particle effect
 			mat.emission_energy_multiplier = 0.8
+		Types.EnemyType.SPIDER:
+			mat.albedo_color = Color(0.3, 0.2, 0.2)  # Dark brown
+			model.scale = Vector3(1.2, 0.6, 1.2)  # Wide and flat
 		Types.EnemyType.TANK_BOSS:
 			mat.albedo_color = Color(0.3, 0.3, 0.3)  # Dark grey tank
 			model.scale = Vector3(1.5, 1.5, 1.5)  # Larger
@@ -144,6 +148,9 @@ func _physics_process(delta: float) -> void:
 
 	if global_position.distance_to(target_pos) < 0.1:
 		path_index += 1
+		# Spider skips corners by jumping over waypoints where direction changes
+		if enemy_type == Types.EnemyType.SPIDER:
+			_try_skip_corner()
 
 	# Nether Dragon spawns minions periodically
 	if enemy_type == Types.EnemyType.NETHER_DRAGON:
@@ -153,15 +160,24 @@ func _physics_process(delta: float) -> void:
 			_spawn_minion()
 
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, damage_type: Types.DamageType = Types.DamageType.PIERCING) -> void:
 	# Enderman teleports forward when hit (dodging mechanic)
 	if enemy_type == Types.EnemyType.ENDERMAN and hp > 0:
 		_teleport_forward()
 
-	hp -= amount
+	var actual_damage := _apply_armor(amount, damage_type)
+	hp -= actual_damage
 	_update_health_bar()
 	if hp <= 0:
 		die()
+
+
+func _apply_armor(amount: int, damage_type: Types.DamageType) -> int:
+	# Iron Golem has high armor - resists piercing damage (arrows/bullets)
+	# Needs explosives to deal full damage
+	if enemy_type == Types.EnemyType.IRON_GOLEM and damage_type == Types.DamageType.PIERCING:
+		return int(amount * 0.25)  # 75% damage reduction vs piercing
+	return amount
 
 
 func die() -> void:
@@ -230,6 +246,26 @@ func _teleport_forward() -> void:
 	if new_index > path_index:
 		path_index = new_index
 		global_position = waypoints[path_index]
+
+
+func _try_skip_corner() -> void:
+	# Spider skips corners by jumping over waypoints where path direction changes
+	if path_index + 1 >= waypoints.size():
+		return  # Not enough waypoints ahead to detect a corner
+
+	# Need previous position, current waypoint, and next waypoint to detect direction change
+	var prev_wp := waypoints[path_index - 1] if path_index > 0 else global_position
+	var curr_wp := waypoints[path_index]
+	var next_wp := waypoints[path_index + 1]
+
+	# Calculate direction vectors (ignoring Y for 2D path logic)
+	var dir_to_curr := Vector2(curr_wp.x - prev_wp.x, curr_wp.z - prev_wp.z).normalized()
+	var dir_to_next := Vector2(next_wp.x - curr_wp.x, next_wp.z - curr_wp.z).normalized()
+
+	# If directions differ significantly, it's a corner - skip this waypoint
+	var dot := dir_to_curr.dot(dir_to_next)
+	if dot < 0.5:  # Angle > ~60 degrees indicates a corner
+		path_index += 1  # Skip to the waypoint after the corner
 
 
 func _reached_castle() -> void:

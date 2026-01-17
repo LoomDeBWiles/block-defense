@@ -125,14 +125,96 @@ func _fire() -> void:
 	if target == null or _projectiles_container == null:
 		return
 
+	# Railgun: instant-hit beam that damages all enemies in a line
+	if weapon == Types.WeaponType.RAILGUN:
+		_fire_railgun()
+		fire_cooldown = 1.0 / fire_rate
+		return
+
 	var projectile: Projectile = PROJECTILE_SCENE.instantiate()
 	projectile.target = target
 	projectile.damage = damage
 	projectile.aoe_radius = aoe_radius
+	projectile.weapon_type = weapon
+	projectile.hazards_container = _projectiles_container
 	_projectiles_container.add_child(projectile)
 	projectile.global_position = global_position
 
 	fire_cooldown = 1.0 / fire_rate
+
+
+func _fire_railgun() -> void:
+	var start := global_position
+	var direction := (target.global_position - start).normalized()
+	direction.y = 0  # Keep beam horizontal
+	if direction.length_squared() < 0.01:
+		return
+	direction = direction.normalized()
+	var end := start + direction * range_radius
+
+	# Damage all enemies along the beam line
+	var hit_enemies := _get_enemies_in_line(start, end, 0.3)  # 0.3 unit radius for line
+	for enemy in hit_enemies:
+		enemy.take_damage(damage, Types.DamageType.PIERCING)
+
+	# Visual beam effect
+	_spawn_beam_visual(start, end)
+
+
+func _get_enemies_in_line(start: Vector3, end: Vector3, radius: float) -> Array[Enemy]:
+	var result: Array[Enemy] = []
+	if _enemies_container == null:
+		return result
+
+	var line_dir := (end - start).normalized()
+	var line_length := start.distance_to(end)
+
+	for child in _enemies_container.get_children():
+		if not is_instance_valid(child) or not child is Enemy:
+			continue
+		var enemy: Enemy = child
+		# Project enemy position onto the line
+		var to_enemy := enemy.global_position - start
+		var proj_length := to_enemy.dot(line_dir)
+		# Check if projection is within line segment
+		if proj_length < 0 or proj_length > line_length:
+			continue
+		# Get perpendicular distance from line
+		var proj_point := start + line_dir * proj_length
+		var dist := enemy.global_position.distance_to(proj_point)
+		if dist <= radius:
+			result.append(enemy)
+
+	return result
+
+
+func _spawn_beam_visual(start: Vector3, end: Vector3) -> void:
+	var beam := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	var length := start.distance_to(end)
+	box.size = Vector3(0.1, 0.1, length)
+
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.2, 0.8, 1.0)  # Cyan beam
+	mat.emission_enabled = true
+	mat.emission = Color(0.2, 0.8, 1.0)
+	mat.emission_energy_multiplier = 3.0
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+
+	beam.mesh = box
+	beam.material_override = mat
+
+	# Position at midpoint, looking toward end
+	var midpoint := (start + end) / 2.0
+	beam.global_position = midpoint
+	beam.look_at(end, Vector3.UP)
+
+	_projectiles_container.add_child(beam)
+
+	# Fade out and remove beam
+	var tween := beam.create_tween()
+	tween.tween_property(mat, "albedo_color:a", 0.0, 0.15)
+	tween.tween_callback(beam.queue_free)
 
 
 ## Upgrade tower to next tier
@@ -162,14 +244,13 @@ func upgrade_with_weapon(chosen_weapon: Types.WeaponType) -> bool:
 	if not GameState.spend_gold(cost):
 		return false
 
-	# Validate weapon choice for each tier
-	var valid_weapons := get_weapon_choices(material_tier)
-	if valid_weapons.is_empty() or chosen_weapon not in valid_weapons:
-		return false
-
-	# Upgrade to next tier
+	# Validate weapon choice for the NEXT tier (we're upgrading into it)
 	var next_tier := material_tier + 1
 	if next_tier > Types.MaterialTier.OBSIDIAN:
+		return false
+
+	var valid_weapons := get_weapon_choices(next_tier)
+	if chosen_weapon not in valid_weapons:
 		return false
 
 	material_tier = next_tier
