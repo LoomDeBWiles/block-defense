@@ -153,6 +153,12 @@ func _fire() -> void:
 	projectile.weapon_type = weapon
 	projectile.damage_type = Projectile.get_damage_type(weapon)
 	projectile.hazards_container = _projectiles_container
+	# Grenade Launcher fires bouncing explosives (1-2 bounces)
+	if weapon == Types.WeaponType.GRENADE_LAUNCHER:
+		projectile.bounces_remaining = randi_range(1, 2)
+	# Missiles are homing - they retarget if target dies
+	if weapon == Types.WeaponType.MISSILE:
+		projectile.homing = true
 	_projectiles_container.add_child(projectile)
 	projectile.global_position = global_position
 

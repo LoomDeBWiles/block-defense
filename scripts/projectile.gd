@@ -9,6 +9,8 @@ var aoe_radius: float = 0.0  # 0 = single target
 var weapon_type: Types.WeaponType = Types.WeaponType.SLINGSHOT
 var damage_type: Types.DamageType = Types.DamageType.PIERCING
 var hazards_container: Node = null
+var bounces_remaining: int = 0  # For bouncing explosives like Grenade Launcher
+var homing: bool = false  # Homing projectiles retarget when target dies
 
 # Explosive weapons bypass armor
 const EXPLOSIVE_WEAPONS := [
@@ -32,8 +34,11 @@ static func get_damage_type(weapon: Types.WeaponType) -> Types.DamageType:
 
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(target):
-		queue_free()
-		return
+		if homing:
+			_retarget()
+		if not is_instance_valid(target):
+			queue_free()
+			return
 
 	var target_pos := target.global_position
 	global_position = global_position.move_toward(target_pos, speed * delta)
@@ -84,6 +89,10 @@ func _hit() -> void:
 		var targets := Enemy.get_enemies_in_radius(global_position, aoe_radius)
 		for enemy in targets:
 			enemy.take_damage(damage, damage_type)
+		# Bouncing explosives find a new target after dealing damage
+		if bounces_remaining > 0:
+			_bounce()
+			return
 	elif is_instance_valid(target):
 		# Single target damage
 		target.take_damage(damage, damage_type)
@@ -93,3 +102,38 @@ func _hit() -> void:
 		BurningGround.spawn(global_position, hazards_container, 5, 0.5, 3.0, aoe_radius)
 
 	queue_free()
+
+
+func _bounce() -> void:
+	bounces_remaining -= 1
+	# Find a new target outside the AoE radius just hit
+	var nearest_enemy: Enemy = null
+	var nearest_dist := INF
+	for enemy in GameState.enemies:
+		if not is_instance_valid(enemy):
+			continue
+		var dist := global_position.distance_to(enemy.global_position)
+		# Skip enemies we just damaged (within AoE radius)
+		if dist <= aoe_radius:
+			continue
+		if dist < nearest_dist:
+			nearest_dist = dist
+			nearest_enemy = enemy
+	if nearest_enemy != null:
+		target = nearest_enemy
+	else:
+		# No valid targets to bounce to - explode in place
+		queue_free()
+
+
+func _retarget() -> void:
+	var nearest_enemy: Enemy = null
+	var nearest_dist := INF
+	for enemy in GameState.enemies:
+		if not is_instance_valid(enemy):
+			continue
+		var dist := global_position.distance_to(enemy.global_position)
+		if dist < nearest_dist:
+			nearest_dist = dist
+			nearest_enemy = enemy
+	target = nearest_enemy
